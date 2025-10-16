@@ -1,0 +1,18 @@
+{
+    "file_imports": [
+        "./examples/pyterrier_extension.py"
+    ],
+    "services": [
+        {
+            "name": "pyterrier-cord",
+            "engine": "PyTerrier",
+            "cache": 100,
+            "cache_ttl": 60,
+            "batch_size": 16,
+            "config": {
+                "index_path": "./examples/terrier_cord19",
+                "wmodel": "BM25"
+            }
+        }
+    ]
+}

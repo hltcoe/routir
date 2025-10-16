@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "routir"
+version = "0.0.1b8"
+description = "A simple and fast search service for hosting state-of-the-art retrieval models."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Eugene Yang", email = "eugene.yang@jhu.edu"}
+]
+maintainers = [
+    {name = "Eugene Yang", email = "eugene.yang@jhu.edu"}
+]
+keywords = ["search", "retrieval", "service"]
+requires-python = ">=3.9"
+
+# core depenencies
+dependencies = [
+    "lark", "quart", "trecrun", "hypercorn", "openai", "aiohttp", "tqdm", "pydantic"
+]
+
+
+[project.scripts]
+routir = "routir.serve:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# only core
+# dynamic = ["dependencies"]
+# [tool.setuptools.dynamic]
+# dependencies = {file = ["requirements.txt"]}
+
+[project.optional-dependencies]
+# Data processing extras
+dense = ["numpy", "faiss-cpu"]
+gpu = ["faiss-gpu", "torch"]
+plaidx = ["plaid-x"]
+sparse = ["pyjnius==1.6.1", "bsparse"]
+docs = [
+    "sphinx>=4.0",
+    "sphinx-rtd-theme>=0.5",
+]
+
+
+# mypy configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+
+# based on https://github.com/huggingface/transformers/blob/main/pyproject.toml
+[tool.ruff]
+line-length = 130
+
+[tool.ruff.lint]
+# Never enforce `E501` (line length violations).
+ignore = ["C901", "E501", "E741", "F402", "F823"]
+select = ["C", "E", "F", "I", "W"]
+
+# Ignore import violations in all `__init__.py` files.
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F401", "F403", "F811"]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+known-first-party = ["examples", "src"]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"

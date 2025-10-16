@@ -1,0 +1,17 @@
+{
+    "file_imports": [
+        "./examples/pyserini_extension.py"
+    ],
+    "services": [
+        {
+            "name": "pyserinibm25-neuclir-zho-dt",
+            "engine": "PyseriniBM25",
+            "cache": 100,
+            "cache_ttl": 60,
+            "batch_size": 16,
+            "config": {
+                "prebuilt_index_name": "neuclir22-zh-en"
+            }
+        }
+    ]
+}

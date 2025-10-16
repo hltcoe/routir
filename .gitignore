@@ -1,0 +1,27 @@
+*.offsetmap
+*.pyc
+resource/*
+*.ipynb
+*.whl
+
+indexes/*
+*.json
+torch_extensions*/*
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache/
+*/*.egg-info/*
+build/*
+
+# If you want to be more specific:
+**/__pycache__/
+
+# Excluding specific examples
+examples/terrier_cord19/*
