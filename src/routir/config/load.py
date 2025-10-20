@@ -48,6 +48,15 @@ async def auto_add_relay_services(servers: List[str]):
                 await processor.start()
                 ProcessorRegistry.register(service_name, service_type, processor)
 
+def load_index_from_hfds(repo_id: str):
+    from huggingface_hub import snapshot_download
+    if repo_id.startswith('hfds:'):
+        repo_id = repo_id.replace('hfds:', '')
+    logger.info(f"Downloading {repo_id} from Huggingface Datasets")
+    # TODO: could first load config from the repo and do some checking
+    local_path = snapshot_download(repo_id=repo_id, repo_type="dataset") + "/index"
+    logger.info(f"Replacing {repo_id} with {local_path}")
+    return local_path
 
 async def load_config(config: str):
     if Path(config).exists():
@@ -64,6 +73,10 @@ async def load_config(config: str):
     for service_config in config.services:
         def _cache_key(x):
             return tuple(x.get(k, "") for k in service_config.cache_key_fields)
+
+        # load index from huggingface datasets
+        if 'index_path' in service_config.config and service_config.config['index_path'].startswith('hfds:'):
+            service_config.config['index_path'] = load_index_from_hfds(service_config.config['index_path'])
 
         engine: Engine = Engine.load(service_config.engine, name=service_config.name, config=service_config.config)
 
