@@ -43,5 +43,5 @@ class LazyImportFinder:
 
 # Mark which modules should be lazy (base modules)
 # would love to lazy load torch and transformers but their import process is too complicated
-_lazy_modules = {'bsparse', 'colbert', 'faiss'}
+_lazy_modules = {'bsparse', 'faiss'}
 sys.meta_path.insert(0, LazyImportFinder())

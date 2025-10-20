@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any, Dict, List
 
 import aiohttp
 
@@ -17,6 +18,29 @@ class Relay(Engine):
         # TODO: should support some runtime config like retry and timeout
         # TODO: support list of endpoints for load balancing
 
+    async def _submit_payload(self, service_type, payloads: List[Dict[str, Any]]):
+        if "endpoint" in self.config:
+            async with aiohttp.ClientSession() as session:
+                resps = await asyncio.gather(
+                    *[session_request(session, f"{self.config['endpoint']}/{service_type}", load) for load in payloads]
+                )
+        else:
+            assert ProcessorRegistry.has_service(self.config["service"], service_type)
+            local_processor = ProcessorRegistry.get(self.config["service"], service_type)
+            resps = await asyncio.gather(*[local_processor.submit(load) for load in payloads])
+
+        print(payloads)
+        print(resps)
+
+
+        # for resp, payload in zip(resps, payloads):
+        #     assert resp["query"] == payload['query']
+        return [
+            # for backward compatiblity if the service is using `result` as key
+            resp.get("scores", resp.get("result", {})) for resp in resps
+        ]
+
+
     async def search_batch(self, queries, subsets=None, **kwargs):
         if subsets is None:
             subsets = ["none"] * len(queries)
@@ -28,7 +52,7 @@ class Relay(Engine):
             else:
                 kwargs[key] = [kwargs[key]] * len(queries)
 
-        payloads = [
+        return await self._submit_payload("search", [
             {
                 "query": queries[i],
                 "service": self.config["service"],
@@ -37,22 +61,23 @@ class Relay(Engine):
                 **{k: kwargs[k][i] for k in kwargs},
             }
             for i in range(len(queries))
-        ]
+        ])
 
-        if "endpoint" in self.config:
-            async with aiohttp.ClientSession() as session:
-                resps = await asyncio.gather(
-                    *[session_request(session, f"{self.config['endpoint']}/query", load) for load in payloads]
-                )
-        else:
-            assert ProcessorRegistry.has_service(self.config["service"], "query")
-            local_processor = ProcessorRegistry.get(self.config["service"], "query")
-            resps = await asyncio.gather(*[local_processor.submit(load) for load in payloads])
 
-        for resp, query in zip(resps, queries):
-            assert resp["query"] == query
-        return [
-            # for backward compatiblity if the service is using `result` as key
-            resp.get("scores", resp.get("result", {}))
-            for resp in resps
-        ]
+    async def score_batch(self, queries, passages, candidate_length = None, **kwargs):
+        if candidate_length is None:
+            candidate_length = [len(passages)]
+        assert len(candidate_length) == len(queries)
+        assert sum(candidate_length) == len(passages)
+
+        payloads = []
+        start = 0
+        for query, l in zip(queries, candidate_length):
+            payloads.append({
+                "query": query,
+                "service": self.config["service"],
+                "passages": passages[start: start+l]
+            })
+            start = start + 1
+
+        return await self._submit_payload("score", payloads)

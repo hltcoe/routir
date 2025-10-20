@@ -1,8 +1,30 @@
 import time
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from ..models import Engine
-from .abstract import BatchProcessor
+from .abstract import BatchProcessor, Processor
+
+
+class AsyncPairwiseScoreProcessor(Processor):
+    """Processor that serve every request independently through async calls.
+    Should be used when all the engine does is issuing async calls
+    """
+
+    def __init__(self, engine: Engine, cache_size=1024, cache_ttl=600, cache_key=None, **kwargs):
+        super().__init__(cache_size, cache_ttl, cache_key)
+        self.engine = engine
+
+    async def _submit(self, item: Dict[str, Any]):
+        """
+        Process one single item
+        """
+
+        query = item.pop("query")
+
+        ranking = (await self.engine.score_batch([query], passages=item.pop("passages")))[0]
+
+        # Process each item in the batch
+        return {"query": query, "scores": ranking, "service": self.engine.name, "processed": True, "timestamp": time.time()}
 
 
 class BatchPairwiseScoreProcessor(BatchProcessor):

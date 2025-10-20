@@ -5,7 +5,14 @@ from typing import List
 import aiohttp
 
 from ..models import Engine, Relay
-from ..processors import AsyncQueryProcessor, BatchPairwiseScoreProcessor, ContentProcessor, Processor, ProcessorRegistry
+from ..processors import (
+    AsyncPairwiseScoreProcessor,
+    AsyncQueryProcessor,
+    BatchPairwiseScoreProcessor,
+    ContentProcessor,
+    Processor,
+    ProcessorRegistry,
+)
 from ..utils import logger, session_request
 from ..utils.extensions import load_all_extensions
 from .config import Config
@@ -21,18 +28,25 @@ async def auto_add_relay_services(servers: List[str]):
         )
 
     # ensure backward compatible
-    avail_services = { server: resp['search'] if 'search' in resp else resp['query'] for server, resp in zip(servers, resps) }
+    avail_services = {
+        server: {
+            "search": resp['search'] if 'search' in resp else resp['query'],
+            "score": resp['score']
+        }
+        for server, resp in zip(servers, resps)
+    }
 
     for server in servers:
-        for service_name in avail_services[server]:
-            if ProcessorRegistry.has_service(service_name, "search"):
-                continue
-            logger.info(f"Adding auto Relay to {server} for service `{service_name}`")
-            processor = AsyncQueryProcessor(
-                engine=Relay(name=service_name, config={"endpoint": server, "service": service_name})
-            )
-            await processor.start()
-            ProcessorRegistry.register(service_name, "search", processor)
+        for service_type, processor_cls in zip(["search", "score"], [AsyncQueryProcessor, AsyncPairwiseScoreProcessor]):
+            for service_name in avail_services[server][service_type]:
+                if ProcessorRegistry.has_service(service_name, service_type):
+                    continue
+                logger.info(f"Adding auto Relay to {server} for service `{service_name}` of type {service_type}")
+                processor = processor_cls(
+                    engine=Relay(name=service_name, config={"endpoint": server, "service": service_name})
+                )
+                await processor.start()
+                ProcessorRegistry.register(service_name, service_type, processor)
 
 
 async def load_config(config: str):
@@ -53,19 +67,20 @@ async def load_config(config: str):
 
         engine: Engine = Engine.load(service_config.engine, name=service_config.name, config=service_config.config)
 
-        processor: Processor = Processor.load(
-            service_config.processor,
-            engine=engine,
-            batch_size=service_config.batch_size,
-            max_wait_time=service_config.max_wait_time,
-            cache_size=service_config.cache,
-            cache_ttl=service_config.cache_ttl,
-            cache_key=_cache_key,
-            redis_url=service_config.cache_redis_url,
-            redis_kwargs=service_config.cache_redis_kwargs,
-        )
-        await processor.start()
-        ProcessorRegistry.register(service_config.name, "search", processor)
+        if engine.can_search:
+            processor: Processor = Processor.load(
+                service_config.processor,
+                engine=engine,
+                batch_size=service_config.batch_size,
+                max_wait_time=service_config.max_wait_time,
+                cache_size=service_config.cache,
+                cache_ttl=service_config.cache_ttl,
+                cache_key=_cache_key,
+                redis_url=service_config.cache_redis_url,
+                redis_kwargs=service_config.cache_redis_kwargs,
+            )
+            await processor.start()
+            ProcessorRegistry.register(service_config.name, "search", processor)
 
         if engine.can_score and not service_config.scoring_disabled:
             processor = BatchPairwiseScoreProcessor(
