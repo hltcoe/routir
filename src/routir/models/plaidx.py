@@ -71,6 +71,12 @@ class PLAIDX(Engine):
         # use_gpu = int(config.get('use_gpu', False)))
 
         self.passage_mapper = None
+        if "passage_mapping" not in self.config:
+            if (Path(self.index_path) / "passage_mapping.tsv").exists():
+                self.config['passage_mapping'] = Path(self.index_path) / "passage_mapping.tsv"
+            elif (Path(self.index_path) / "mapping.tsv").exists():
+                self.config['passage_mapping'] = Path(self.index_path) / "mapping.tsv"
+
         if "passage_mapping" in self.config:
             self.passage_mapper = Aggregation(
                 _load_mapping(self.config["passage_mapping"], self.config.get("mapping_containing_passage_id", True))
