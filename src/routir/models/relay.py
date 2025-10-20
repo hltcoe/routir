@@ -29,12 +29,8 @@ class Relay(Engine):
             local_processor = ProcessorRegistry.get(self.config["service"], service_type)
             resps = await asyncio.gather(*[local_processor.submit(load) for load in payloads])
 
-        print(payloads)
-        print(resps)
-
-
-        # for resp, payload in zip(resps, payloads):
-        #     assert resp["query"] == payload['query']
+        for resp, payload in zip(resps, payloads):
+            assert resp["query"] == payload['query']
         return [
             # for backward compatiblity if the service is using `result` as key
             resp.get("scores", resp.get("result", {})) for resp in resps
