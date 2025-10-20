@@ -1,0 +1,32 @@
+{
+    "services": [
+        {
+            "name": "qwen3-neuclir-w-api",
+            "engine": "Qwen3", 
+            "cache": 1024, 
+            "cache_ttl": 1024000, 
+            "batch_size": 32, 
+            "max_wait_time": 0.05, 
+            "config": {
+                "index_path": "hfds:routir/neuclir-qwen3-8b-faiss-PQ2048x4fs",
+                "api_key": "YOUR_API_KEY_HERE OR AT OPENAI_API_KEY ENVIRONMENT VARIABLE",
+                "embedding_base_url": "https://api.fireworks.ai/inference/v1/",
+                "embedding_model_name": "accounts/fireworks/models/qwen3-embedding-8b",
+                "k_scale": 5
+            }
+        },
+        {
+            "name": "qwen3-neuclir-w-local-model",
+            "engine": "Qwen3", 
+            "cache": 1024, 
+            "cache_ttl": 1024000, 
+            "batch_size": 32, 
+            "max_wait_time": 0.05, 
+            "config": {
+                "index_path": "hfds:routir/neuclir-qwen3-8b-faiss-PQ2048x4fs",
+                "embedding_model_name": "Qwen/Qwen3-Embedding-8B",
+                "k_scale": 5
+            }
+        }
+    ]
+}
