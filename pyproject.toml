@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "routir"
-version = "0.0.1b8"
+version = "0.0.1b9"
 description = "A simple and fast search service for hosting state-of-the-art retrieval models."
 readme = "README.md"
 license = {text = "MIT"}
