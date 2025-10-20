@@ -1,0 +1,12 @@
+{
+    "file_imports": [
+        "./examples/rank1_extension.py"
+    ],
+    "services": [
+        {
+            "name": "rank1",
+            "engine": "Rank1Engine",
+            "config": {}
+        }
+    ]
+}
