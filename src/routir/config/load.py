@@ -40,9 +40,10 @@ async def auto_add_relay_services(servers: List[str]):
             "score": resp['score']
         }
         for server, resp in zip(servers, resps)
+        if resp is not None
     }
 
-    for server in servers:
+    for server in avail_services:
         for service_type, processor_cls in zip(["search", "score"], [AsyncQueryProcessor, AsyncPairwiseScoreProcessor]):
             for service_name in avail_services[server][service_type]:
                 if ProcessorRegistry.has_service(service_name, service_type):

@@ -94,12 +94,15 @@ async def session_request(session: aiohttp.ClientSession, url: str, payload: Dic
     Returns:
         Response JSON data
     """
-    if method == "POST":
-        async with session.post(url, json=payload) as response:
-            return await response.json()
-    elif method == "GET":
-        async with session.get(url) as response:
-            return await response.json()
+    try:
+        if method == "POST":
+            async with session.post(url, json=payload) as response:
+                return await response.json()
+        elif method == "GET":
+            async with session.get(url) as response:
+                return await response.json()
+    except Exception as e:
+        logger.warning(f"HTTP request to {url} failed: {e}")
 
 
 def _recursive_subclasses(cls: type):
