@@ -1,10 +1,12 @@
 # RoutIR: Fast Server for Hosting Retrieval Models for Retrieval-Augmented Generation
 
 <div align="center">
+
 [![PyPI version fury.io](https://badge.fury.io/py/routir.svg)](https://pypi.python.org/pypi/routir/)
 [![Made with Python](https://img.shields.io/badge/Python->=3.9-blue?logo=python&logoColor=white)](https://python.org "Go to Python homepage")
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 </div>
 
 RoutIR is a Python package that provides a simple and efficient wrapper around arbitrary retrieval models, including first stage retrieval, reranking, query expansion, and result fusion, and provides efficient asynchronous query batching and serving. 
