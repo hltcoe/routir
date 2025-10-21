@@ -142,6 +142,7 @@ The search endpoint returns a JSON response:
    }
 
 Fields:
+
 * ``query``: The original query
 * ``scores``: Dictionary mapping document IDs to relevance scores
 * ``service``: The service that processed the query
