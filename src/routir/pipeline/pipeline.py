@@ -48,7 +48,9 @@ class SearchPipeline:
 
     def verify(self):
         """Verify that all required services exist in the registry."""
-        assert ProcessorRegistry.has_service(self.collection, "content")
+        if any(call.role == "rerank" for call in self.pipeline.all_calls):
+            assert ProcessorRegistry.has_service(self.collection, "content"), \
+                f"Cannot find content service for collection `{self.collection}` but the pipeline involve reranking"
         for call in self.pipeline.all_calls:
             assert ProcessorRegistry.has_service(call.name, _role_to_service[call.role]), (
                 f"Cannot find a {_role_to_service[call.role]} service under `{call.name}`"
