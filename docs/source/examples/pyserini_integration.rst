@@ -1,7 +1,7 @@
 Pyserini Integration
 ====================
 
-This example shows how to use Pyserini BM25 indexes with Routir.
+This example shows how to use Pyserini BM25 indexes with ``routir``.
 
 Overview
 --------
@@ -20,7 +20,7 @@ Using Pre-built Indexes
 -----------------------
 
 Pyserini provides many pre-built indexes for popular collections. You can use these
-directly with Routir without building your own index.
+directly with ``routir`` without building your own index.
 
 Configuration
 -------------
@@ -65,7 +65,7 @@ See the `Pyserini documentation <https://github.com/castorini/pyserini>`_ for a 
 Starting the Service
 --------------------
 
-Start the Routir service with Pyserini support:
+Start the ``routir`` service with Pyserini support:
 
 .. code-block:: bash
 

@@ -1,7 +1,7 @@
 Contributing
 ============
 
-Contributions to Routir are welcome! Please follow these guidelines when contributing.
+Contributions to ``routir`` are welcome! Please follow these guidelines when contributing.
 
 Getting Started
 ---------------

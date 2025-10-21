@@ -1,7 +1,7 @@
 Processors
 ==========
 
-This section contains auto-generated documentation for all processor classes in Routir.
+This section contains auto-generated documentation for all processor classes in ``routir``.
 Processors handle request batching, caching, and content processing.
 
 Base Classes

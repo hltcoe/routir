@@ -1,7 +1,7 @@
 Models
 ======
 
-This section contains auto-generated documentation for all model classes in Routir.
+This section contains auto-generated documentation for all model classes in ``routir``.
 
 Base Classes
 ------------

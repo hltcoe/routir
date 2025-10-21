@@ -1,13 +1,13 @@
 PyTerrier Integration
 =====================
 
-This example shows how to use PyTerrier models with Routir.
+This example shows how to use PyTerrier models with ``routir``.
 
 Overview
 --------
 
 PyTerrier is a Python framework for information retrieval experimentation. You can
-use PyTerrier models and indexes with Routir by creating a custom extension.
+use PyTerrier models and indexes with ``routir`` by creating a custom extension.
 
 .. note::
    This example requires the ``python-terrier`` package:
@@ -69,7 +69,7 @@ Create a configuration file ``pyterrier_example_config.json``:
 Starting the Service
 --------------------
 
-Start the Routir service with PyTerrier support:
+Start the ``routir`` service with PyTerrier support:
 
 .. code-block:: bash
 

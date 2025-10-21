@@ -1,12 +1,12 @@
 Configuration Guide
 ===================
 
-This guide explains how to configure Routir services, collections, and pipelines.
+This guide explains how to configure ``routir`` services, collections, and pipelines.
 
 Configuration File Structure
 -----------------------------
 
-A Routir configuration file is a JSON document with the following structure:
+A ``routir`` configuration file is a JSON document with the following structure:
 
 .. code-block:: json
 

@@ -1,7 +1,7 @@
 Welcome to Routir's Documentation!
 ====================================
 
-**Routir** is a simple and fast search service for hosting state-of-the-art retrieval models.
+``routir`` is a simple and fast search service for hosting state-of-the-art retrieval models.
 It provides a flexible framework for building and deploying search services with support for
 multiple search engines, processors, and pipeline configurations.
 
@@ -27,7 +27,7 @@ Key Features
 Quick Start
 -----------
 
-Install Routir:
+Install ``routir``:
 
 .. code-block:: bash
 

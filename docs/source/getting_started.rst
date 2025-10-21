@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-This guide will help you get started with Routir, from installation to running your first search service.
+This guide will help you get started with ``routir``, from installation to running your first search service.
 
 Installation
 ------------
@@ -15,7 +15,7 @@ Prerequisites
 Basic Installation
 ~~~~~~~~~~~~~~~~~~
 
-Install Routir using pip:
+Install ``routir`` using pip:
 
 .. code-block:: bash
 
@@ -153,7 +153,7 @@ Fields:
 Available Endpoints
 -------------------
 
-Routir provides several REST API endpoints:
+``routir`` provides several REST API endpoints:
 
 Search Endpoint
 ~~~~~~~~~~~~~~~

@@ -1,12 +1,12 @@
 Quick Start
 ===========
 
-This guide will help you get started with Routir quickly.
+This guide will help you get started with ``routir`` quickly.
 
 Installation
 ------------
 
-Install Routir using pip:
+Install ``routir`` using pip:
 
 .. code-block:: bash
 

@@ -1,12 +1,12 @@
 Architecture
 ============
 
-This document describes the architecture of Routir.
+This document describes the architecture of ``routir``.
 
 Overview
 --------
 
-Routir is built with a modular architecture consisting of several key components:
+``routir`` is built with a modular architecture consisting of several key components:
 
 - **Engines**: Search and reranking models (PLAID-X, LSR, Qwen3, mT5, etc.)
 - **Processors**: Request batching, caching, and content processing

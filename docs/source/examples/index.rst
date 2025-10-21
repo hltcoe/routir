@@ -1,7 +1,7 @@
 Examples
 ========
 
-Real-world examples of using Routir with different search engines and frameworks.
+Real-world examples of using ``routir`` with different search engines and frameworks.
 
 .. toctree::
    :maxdepth: 2
@@ -13,10 +13,10 @@ Real-world examples of using Routir with different search engines and frameworks
 Overview
 --------
 
-These examples demonstrate how to use Routir in various scenarios:
+These examples demonstrate how to use ``routir`` in various scenarios:
 
-* **PyTerrier Integration**: Use PyTerrier models with Routir
-* **Pyserini Integration**: Serve Pyserini BM25 indexes via Routir
+* **PyTerrier Integration**: Use PyTerrier models with ``routir``
+* **Pyserini Integration**: Serve Pyserini BM25 indexes via ``routir``
 * **Hybrid Search**: Combine multiple search engines
 
 Each example includes:
@@ -29,7 +29,7 @@ Each example includes:
 Quick Example
 -------------
 
-Here's a quick example of using Routir with a search service:
+Here's a quick example of using ``routir`` with a search service:
 
 .. code-block:: python
 
