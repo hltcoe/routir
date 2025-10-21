@@ -8,7 +8,7 @@ Overview
 
 Routir is built with a modular architecture consisting of several key components:
 
-- **Models**: Search and reranking models (PLAID-X, LSR, Qwen3, mT5, etc.)
+- **Engines**: Search and reranking models (PLAID-X, LSR, Qwen3, mT5, etc.)
 - **Processors**: Request batching, caching, and content processing
 - **Pipeline**: Composable search pipelines with multiple stages
 - **Config**: JSON-based configuration system
@@ -16,10 +16,10 @@ Routir is built with a modular architecture consisting of several key components
 Components
 ----------
 
-Models
+Engines
 ~~~~~~
 
-Models implement the core search and scoring functionality. All models inherit from a base abstract class
+Engines implement the core search and scoring functionality. All models inherit from a base abstract class
 and implement the required interface methods.
 
 Processors
