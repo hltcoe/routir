@@ -1,3 +1,10 @@
+"""
+Search and retrieval engine implementations.
+
+This module provides various search engines including dense retrieval (PLAIDX, Qwen3),
+sparse retrieval (LSR), rerankers (MT5), and utility engines (Relay, Fusion).
+"""
+
 from typing import Any, Dict, List
 
 from .abstract import Aggregation, Engine, Reranker

@@ -8,7 +8,27 @@ from .cache import Cache, LRUCache, RedisCache
 
 
 class Processor(FactoryEnabled):
+    """
+    Base class for request processors with caching support.
+
+    Handles request submission with optional caching via LRU or Redis.
+
+    Attributes:
+        cache: Cache instance (LRU or Redis)
+        cache_key: Function to generate cache keys from requests
+    """
+
     def __init__(self, cache_size=1024, cache_ttl=600, cache_key=None, redis_url: str = None, redis_kwargs: Dict[str, Any] = {}):
+        """
+        Initialize processor with caching.
+
+        Args:
+            cache_size: Maximum cache entries (-1 to disable)
+            cache_ttl: Cache entry time-to-live in seconds
+            cache_key: Function to generate cache keys from requests
+            redis_url: Optional Redis URL for distributed caching
+            redis_kwargs: Additional Redis configuration
+        """
         self.cache: Cache = None
         if cache_size > 0 and redis_url is None:
             self.cache = LRUCache(cache_size, cache_ttl)
@@ -19,9 +39,23 @@ class Processor(FactoryEnabled):
             self.cache_key = lambda x: (x.get("service", "default"), x["query"], x.get("limit", "none"), x.get("subset", "none"))
 
     async def start(self):
+        """
+        Initialize the processor (called before serving requests).
+
+        Heavy initialization tasks can be performed here.
+        """
         pass
 
     async def submit(self, item: Any) -> Dict[str, Any]:
+        """
+        Submit a request for processing with caching.
+
+        Args:
+            item: Request data
+
+        Returns:
+            Response dict with 'cached' field indicating cache hit/miss
+        """
         # check cache
         if self.cache is not None:
             cache_key = self.cache_key(item)
@@ -40,10 +74,10 @@ class Processor(FactoryEnabled):
         return {**result, "cached": False}
 
     async def _submit(self, item: Any) -> Dict[str, Any]:
+        """Process a single request (to be implemented by subclasses)."""
         raise NotImplementedError
 
 
-# Mostly thank to Claude
 class BatchProcessor(Processor):
     def __init__(self, batch_size=32, max_wait_time=0.1, cache_size=1024, cache_ttl=600, cache_key=None, **kwargs):
         """

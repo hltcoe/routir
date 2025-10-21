@@ -123,10 +123,9 @@ class MSMARCOSegOffset(RandomAccessReader):
 
         try:
             from rapidgzip import RapidgzipFile
-
             self.opener = partial(RapidgzipFile, parallelization=num_workers)
-        except:
-            logger.warning("Failed loading rapidgzip for .gz collection. Failling back to native gzip, which is slower.")
+        except Exception as e:
+            logger.warning(f"Failed loading rapidgzip for .gz collection. Falling back to native gzip, which is slower: {e}")
             import gzip
 
             self.opener = gzip.open

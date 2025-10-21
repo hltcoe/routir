@@ -14,7 +14,26 @@ except ImportError:
 
 
 class LSR(Engine):
+    """
+    Learned Sparse Retrieval engine using SPLADE model as the query encoder.
+
+    Performs sparse retrieval with learned term weights using Anserini indexes.
+
+    Attributes:
+        anserini: Anserini index interface
+        model: SPLADE model for query encoding
+        subset_mapper: Optional mapping of document IDs to subsets
+    """
+
     def __init__(self, name: str = "LSR", config: Union[str, Path, Dict[str, Any]] = None, **kwargs):
+        """
+        Initialize LSR engine.
+
+        Args:
+            name: Engine name
+            config: Configuration with index_path, model_name, max_length, etc.
+            **kwargs: Additional configuration
+        """
         super().__init__(name, config, **kwargs)
 
         index = self.config["index_path"]

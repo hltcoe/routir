@@ -9,7 +9,25 @@ from .abstract import Engine
 
 
 class Relay(Engine):
+    """
+    Relay engine that forwards requests to remote or local services.
+
+    Can relay to either HTTP endpoints or local processors, enabling
+    distributed search architectures and service composition.
+
+    Attributes:
+        other_kwargs: Additional parameters to include in forwarded requests
+    """
+
     def __init__(self, name: str = None, config=None, **kwargs):
+        """
+        Initialize the relay engine.
+
+        Args:
+            name: Engine name
+            config: Must contain 'service' key; optionally 'endpoint' for remote services
+            **kwargs: Additional configuration
+        """
         super().__init__(name, config, **kwargs)
 
         assert "service" in self.config

@@ -7,6 +7,16 @@ from .abstract import Engine
 
 
 def _rrf(score_list: List[Dict[str, float]], smoothing_k=0) -> Dict[str, float]:
+    """
+    Reciprocal Rank Fusion.
+
+    Args:
+        score_list: List of result dicts to fuse
+        smoothing_k: Smoothing parameter (default 0)
+
+    Returns:
+        Fused scores dict
+    """
     fused = {}
     for scores in score_list:
         for i, (docid, s) in enumerate(sorted(scores.items(), key=lambda x: -x[1])):
@@ -18,6 +28,15 @@ def _rrf(score_list: List[Dict[str, float]], smoothing_k=0) -> Dict[str, float]:
 
 
 def _score_fusion(score_list: List[Dict[str, float]]) -> Dict[str, float]:
+    """
+    Simple score fusion by summing scores.
+
+    Args:
+        score_list: List of result dicts to fuse
+
+    Returns:
+        Fused scores dict
+    """
     fused = {}
     for scores in score_list:
         for docid, s in scores.items():
@@ -35,10 +54,27 @@ _fusion_functions: Dict[str, Callable] = {
 
 
 class Fusion(Engine):
-    # NOTE: this might be deprecate at some point but it is still useful when specifying a specific
-    # process using config
+    """
+    Engine that fuses results from multiple upstream engines.
+
+    Retrieves results from multiple engines and combines them using
+    a fusion method (RRF or score-based).
+
+    Attributes:
+        upstream: List of upstream engines
+        fusion_function: Function to use for fusion
+        fusion_args: Arguments for the fusion function
+    """
 
     def __init__(self, name=None, config=None, **kwargs):
+        """
+        Initialize fusion engine.
+
+        Args:
+            name: Engine name
+            config: Must contain 'upstream_service' list
+            **kwargs: Additional configuration
+        """
         super().__init__(name, config, **kwargs)
 
         self.upstream: List[Engine] = []
@@ -69,11 +105,17 @@ class Fusion(Engine):
 
 @auto_register("fuse")
 class RRF(Engine):
+    """Reciprocal Rank Fusion engine for combining result lists."""
+
     async def fuse_batch(self, queries, batch_rankings, **kwargs):
+        """Fuse multiple rankings using RRF algorithm."""
         return [_rrf(rankings, int(kwargs.get("rrf_k", 0))) for rankings in batch_rankings]
 
 
 @auto_register("fuse")
 class ScoreFusion(Engine):
+    """Score-based fusion engine for combining result lists."""
+
     async def fuse_batch(self, queries, batch_rankings, **kwargs):
+        """Fuse multiple rankings by summing scores."""
         return [_score_fusion(rankings) for rankings in batch_rankings]

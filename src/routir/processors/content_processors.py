@@ -8,7 +8,27 @@ from .file_random_access_reader import MSMARCOSegOffset, OffsetFile, RandomAcces
 
 
 class ContentProcessor(Processor):
+    """
+    Processor for retrieving document content by ID.
+
+    Provides fast random access to documents in JSONL files using offset maps.
+
+    Attributes:
+        config: Collection configuration
+        line_reader: Random access reader for document file
+        content_field: Field(s) containing document text
+        lang_mapping: Optional mapping of document IDs to language codes
+    """
+
     def __init__(self, collection_config: ColllectionConfig, cache_size=0, cache_ttl=600):
+        """
+        Initialize content processor.
+
+        Args:
+            collection_config: Collection configuration with doc_path, id_field, etc.
+            cache_size: Maximum cache entries
+            cache_ttl: Cache TTL in seconds
+        """
         # always use `id` from the request as the key, this is different from id_field in config
         super().__init__(cache_size, cache_ttl, lambda x: x["id"])
 

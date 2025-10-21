@@ -62,9 +62,33 @@ def _get_prediction_tokens(
 
 
 class MT5Reranker(Reranker):
+    """
+    mT5-based reranker for passage scoring.
+
+    Uses sequence-to-sequence T5 models fine-tuned for relevance scoring.
+
+    Attributes:
+        prompt: Template for formatting query-document pairs
+        model: T5 model instance
+        tokenizer: T5 tokenizer
+        q_max_length: Maximum query length
+        d_max_length: Maximum document length
+        batch_size: Batch size for inference
+        token_false_id: Token ID for "false" prediction
+        token_true_id: Token ID for "true" prediction
+    """
+
     prompt = "Query: {query} Document: {document} Relevant:"
 
     def __init__(self, name=None, config=None, **kwargs):
+        """
+        Initialize MT5 reranker.
+
+        Args:
+            name: Reranker name
+            config: Configuration with model_name_or_path, max_lengths, etc.
+            **kwargs: Additional configuration
+        """
         super().__init__(name, config, **kwargs)
 
         assert "model_name_or_path" in self.config

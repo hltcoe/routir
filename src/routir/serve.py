@@ -70,6 +70,7 @@ async def process_scoring():
 
 @app.route("/content", methods=["POST"])
 async def process_get_content():
+    """API endpoint for retrieving document content by ID."""
     try:
         data = await request.get_json()
         if not data or "id" not in data:
@@ -88,6 +89,7 @@ async def process_get_content():
 
 @app.route("/pipeline", methods=["POST"])
 async def process_pipeline():
+    """API endpoint for executing custom search pipelines."""
     try:
         data = await request.get_json()
         if not data:
@@ -114,10 +116,16 @@ async def health_check():
 
 @app.route("/avail", methods=["GET"])
 async def get_avail_service():
+    """API endpoint for listing available services."""
     return jsonify(ProcessorRegistry.get_all_services())
 
 
 def main():
+    """
+    Main entry point for the search service server.
+
+    Parses command line arguments and starts the Hypercorn server.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str)
     parser.add_argument("--port", type=int, default=5000)

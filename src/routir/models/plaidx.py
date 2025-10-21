@@ -46,7 +46,28 @@ def _cumsum(arr):
 
 
 class PLAIDX(Engine):
+    """
+    PLAID-X engine for late-interaction dense retrieval using ColBERT.
+
+    Provides fast and effective neural retrieval with token-level interactions.
+
+    Attributes:
+        colbert_config: ColBERT configuration
+        searcher: ColBERT searcher instance
+        passage_mapper: Optional mapping for passage-to-document aggregation
+        subset_mapper: Optional mapping of document IDs to subsets
+        inference_batch_size: Batch size for inference operations
+    """
+
     def __init__(self, name: str = "PLAID-X", config: Union[str, Path, Dict[str, Any]] = None, **kwargs):
+        """
+        Initialize PLAID-X engine.
+
+        Args:
+            name: Engine name
+            config: Configuration with index_path, checkpoint, use_gpu, etc.
+            **kwargs: Additional configuration
+        """
         super().__init__(name, config, **kwargs)
 
         # make sure ninja can load

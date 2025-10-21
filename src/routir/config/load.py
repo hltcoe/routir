@@ -19,6 +19,12 @@ from .config import Config
 
 
 async def auto_add_relay_services(servers: List[str]):
+    """
+    Automatically discover and register services from remote servers.
+
+    Args:
+        servers: List of server URLs to query for available services
+    """
     if isinstance(servers, str):
         servers = [servers]
 
@@ -49,6 +55,15 @@ async def auto_add_relay_services(servers: List[str]):
                 ProcessorRegistry.register(service_name, service_type, processor)
 
 def load_index_from_hfds(repo_id: str):
+    """
+    Download an index from HuggingFace Datasets.
+
+    Args:
+        repo_id: Repository ID (with optional 'hfds:' prefix)
+
+    Returns:
+        Path to the downloaded index directory
+    """
     from huggingface_hub import snapshot_download
     if repo_id.startswith('hfds:'):
         repo_id = repo_id.replace('hfds:', '')
@@ -59,6 +74,15 @@ def load_index_from_hfds(repo_id: str):
     return local_path
 
 async def load_config(config: str):
+    """
+    Load and initialize the service configuration.
+
+    Loads configuration from file or JSON string, initializes all collections
+    and services, and registers them with the ProcessorRegistry.
+
+    Args:
+        config: Path to config file or JSON string
+    """
     if Path(config).exists():
         config = Path(config).read_text()
 

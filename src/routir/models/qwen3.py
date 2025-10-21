@@ -23,7 +23,30 @@ except ImportError:
 
 
 class Qwen3(Engine):
+    """
+    Qwen3 embedding-based dense retrieval engine.
+
+    Uses Qwen3 embeddings with FAISS for efficient similarity search.
+    Supports both local and API-based embedding generation.
+
+    Attributes:
+        embedding_model_name: Name of the embedding model
+        local_embedding_model: Local embedding model instance (if not using API)
+        client: OpenAI-compatible API client (if using API)
+        index: FAISS index for search
+        doc_ids: List of document IDs corresponding to index vectors
+        subset_mapper: Optional mapping of document IDs to subsets
+    """
+
     def __init__(self, name: str = "Qwen3", config: Union[str, Path, Dict[str, Any]] = None, **kwargs):
+        """
+        Initialize Qwen3 engine.
+
+        Args:
+            name: Engine name
+            config: Configuration with index_path, embedding_model_name, etc.
+            **kwargs: Additional configuration
+        """
         super().__init__(name, config, **kwargs)
 
         self.embedding_model_name = self.config.get("embedding_model_name", "Qwen/Qwen3-Embedding-8B")

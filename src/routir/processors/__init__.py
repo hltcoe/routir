@@ -1,3 +1,9 @@
+"""
+Request processors for handling search, scoring, and content retrieval.
+
+Provides both async and batch processing implementations with caching support.
+"""
+
 from .abstract import BatchProcessor, LRUCache, Processor
 from .content_processors import ContentProcessor
 from .file_random_access_reader import OffsetFile

@@ -11,9 +11,31 @@ _role_to_service = {"search": "search", "rerank": "score", "expander": "decompos
 
 
 class SearchPipeline:
+    """
+    Executes search pipelines defined using a custom DSL.
+
+    Supports sequential and parallel execution of search, rerank, query expansion,
+    and fusion operations.
+
+    Attributes:
+        pipeline: Parsed pipeline component tree
+        collection: Document collection to search
+        runtime_kwargs: Runtime parameters passed to pipeline components
+        doc_content_cache: Cache for retrieved document content
+    """
+
     def __init__(
         self, pipeline: PipelineComponent, collection: str, runtime_kwargs: Dict[str, Dict[str, Any]] = None, verify: bool = True
     ):
+        """
+        Initialize search pipeline.
+
+        Args:
+            pipeline: Parsed pipeline component
+            collection: Collection name
+            runtime_kwargs: Runtime parameters for pipeline components
+            verify: Whether to verify all services exist
+        """
         self.pipeline = pipeline
         self.collection = collection
         self.runtime_kwargs = runtime_kwargs or {}
@@ -25,6 +47,7 @@ class SearchPipeline:
         assert len(alias_not_found) == 0, f"Cannot find alias {alias_not_found}"
 
     def verify(self):
+        """Verify that all required services exist in the registry."""
         assert ProcessorRegistry.has_service(self.collection, "content")
         for call in self.pipeline.all_calls:
             assert ProcessorRegistry.has_service(call.name, _role_to_service[call.role]), (
@@ -35,9 +58,30 @@ class SearchPipeline:
     def from_string(
         cls, pipeline_string: str, collection: str, runtime_kwargs: Dict[str, Dict[str, Any]] = None, verify: bool = True
     ) -> "SearchPipeline":
+        """
+        Create pipeline from string specification.
+
+        Args:
+            pipeline_string: Pipeline DSL string
+            collection: Collection name
+            runtime_kwargs: Runtime parameters
+            verify: Whether to verify services
+
+        Returns:
+            SearchPipeline instance
+        """
         return cls(parser.parse(pipeline_string), collection, runtime_kwargs, verify)
 
     async def get_doc_content(self, doc_id: str):
+        """
+        Retrieve and cache document content.
+
+        Args:
+            doc_id: Document identifier
+
+        Returns:
+            Document text content
+        """
         if doc_id not in self.doc_content_cache:
             ret = await ProcessorRegistry[self.collection]["content"].submit({"id": doc_id})
             self.doc_content_cache[doc_id] = ret["text"]
@@ -50,6 +94,18 @@ class SearchPipeline:
         current_node: PipelineComponent = None,
         scratch: Dict[str, Dict[str, Any]] = None,
     ) -> List[Dict[str, float]]:
+        """
+        Recursively execute the pipeline for a query.
+
+        Args:
+            query: Search query
+            last_output: Output from previous stage
+            current_node: Current pipeline component to execute
+            scratch: Scratch space for intermediate results
+
+        Returns:
+            Final search results
+        """
         current_node = current_node or self.pipeline
         last_output = last_output or {}
         scratch = scratch or {}
