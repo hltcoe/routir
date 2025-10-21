@@ -109,7 +109,7 @@ Using Python:
    results = response.json()
    print(results["scores"])  # Dict of {doc_id: score}
 
-Using cURL:
+From the command line using cURL:
 
 .. code-block:: bash
 
