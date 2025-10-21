@@ -38,7 +38,6 @@ Or use uvx:
    :caption: User Guide
 
    getting_started
-   examples/index
 
 .. toctree::
    :maxdepth: 2
