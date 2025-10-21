@@ -1,7 +1,9 @@
 # routir: A Simple and Fast Search Service for Hosting State-of-the-Art Retrieval Models.
 
 ```bash
-python -m routir.serve config.json
+routir config.json
+# or using uvx
+uvx routir config
 ```
 
 ## Faiss Indexing 
@@ -16,7 +18,7 @@ python -m routir.utils.faiss_indexing \
 ### PyTerrier
 ```bash
 python ./examples/pyterrier_extension.py # to build the index
-routir ./examples/pyterrier_example_config.json --port 8000 # serve it at port 8000
+uvx --with python-terrier routir ./examples/pyterrier_example_config.json --port 8000 # serve it at port 8000
 ```
 
 ```python
@@ -26,8 +28,7 @@ requests.post("http://localhost:8000/search", json={"service": "pyterrier-cord",
 
 ### Pyserini
 ```bash
-python ./examples/pyserini_extension.py # to build the index
-routir ./examples/pyserini_example_config.json --port 8000 # serve it at port 8000
+uvx --with pyserini routir ./examples/pyserini_example_config.json --port 8000 # serve it at port 8000
 ```
 
 ```python
