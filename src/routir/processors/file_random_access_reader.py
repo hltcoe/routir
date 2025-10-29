@@ -114,6 +114,9 @@ class OffsetFile(RandomAccessReader):
     def __contains__(self, idx: str):
         return idx in self.pointer_dict
 
+    def __len__(self):
+        return len(self.pointer_dict)
+
 
 class MSMARCOSegOffset(RandomAccessReader):
     def __init__(
