@@ -1,0 +1,958 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; Routir 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utilities" href="utils.html" />
+    <link rel="prev" title="Pipeline" href="pipeline.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Routir
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#starting-the-service">Starting the Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#http-api">HTTP API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#available-services">1. Available services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#search-an-index">2. Search an index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#score-rerank">3. Score/Rerank</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#search-with-dynamic-pipeline">4. Search with dynamic pipeline</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#extension-examples">Extension Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#pyterrier">PyTerrier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#pyserini">Pyserini</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#rank1">Rank1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#other-helper-scripts">Other Helper Scripts</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.abstract">Base Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.abstract.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.name"><code class="docutils literal notranslate"><span class="pre">Engine.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.config"><code class="docutils literal notranslate"><span class="pre">Engine.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.index_path"><code class="docutils literal notranslate"><span class="pre">Engine.index_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.__init__"><code class="docutils literal notranslate"><span class="pre">Engine.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.search_batch"><code class="docutils literal notranslate"><span class="pre">Engine.search_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.search"><code class="docutils literal notranslate"><span class="pre">Engine.search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.score_batch"><code class="docutils literal notranslate"><span class="pre">Engine.score_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.score"><code class="docutils literal notranslate"><span class="pre">Engine.score()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.decompose_query_batch"><code class="docutils literal notranslate"><span class="pre">Engine.decompose_query_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.decompose_query"><code class="docutils literal notranslate"><span class="pre">Engine.decompose_query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.fuse_batch"><code class="docutils literal notranslate"><span class="pre">Engine.fuse_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.fuse"><code class="docutils literal notranslate"><span class="pre">Engine.fuse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.can_search"><code class="docutils literal notranslate"><span class="pre">Engine.can_search</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.can_score"><code class="docutils literal notranslate"><span class="pre">Engine.can_score</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.can_decompose_query"><code class="docutils literal notranslate"><span class="pre">Engine.can_decompose_query</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.can_fuse"><code class="docutils literal notranslate"><span class="pre">Engine.can_fuse</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.abstract.Reranker"><code class="docutils literal notranslate"><span class="pre">Reranker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.upstream"><code class="docutils literal notranslate"><span class="pre">Reranker.upstream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.text_service"><code class="docutils literal notranslate"><span class="pre">Reranker.text_service</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.rerank_topk_max"><code class="docutils literal notranslate"><span class="pre">Reranker.rerank_topk_max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.rerank_multiplier"><code class="docutils literal notranslate"><span class="pre">Reranker.rerank_multiplier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.__init__"><code class="docutils literal notranslate"><span class="pre">Reranker.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.get_text"><code class="docutils literal notranslate"><span class="pre">Reranker.get_text()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.search_batch"><code class="docutils literal notranslate"><span class="pre">Reranker.search_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation"><code class="docutils literal notranslate"><span class="pre">Aggregation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.mapping"><code class="docutils literal notranslate"><span class="pre">Aggregation.mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.__init__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.__contains__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__contains__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.__getitem__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__getitem__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.maxp"><code class="docutils literal notranslate"><span class="pre">Aggregation.maxp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.n_docs"><code class="docutils literal notranslate"><span class="pre">Aggregation.n_docs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.__len__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__len__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.plaidx">PLAID-X (ColBERT)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.plaidx.colbert_all_pair_scores"><code class="docutils literal notranslate"><span class="pre">colbert_all_pair_scores()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX"><code class="docutils literal notranslate"><span class="pre">PLAIDX</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.colbert_config"><code class="docutils literal notranslate"><span class="pre">PLAIDX.colbert_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.searcher"><code class="docutils literal notranslate"><span class="pre">PLAIDX.searcher</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.passage_mapper"><code class="docutils literal notranslate"><span class="pre">PLAIDX.passage_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.subset_mapper"><code class="docutils literal notranslate"><span class="pre">PLAIDX.subset_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.inference_batch_size"><code class="docutils literal notranslate"><span class="pre">PLAIDX.inference_batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.__init__"><code class="docutils literal notranslate"><span class="pre">PLAIDX.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.filter_subset"><code class="docutils literal notranslate"><span class="pre">PLAIDX.filter_subset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.search_batch"><code class="docutils literal notranslate"><span class="pre">PLAIDX.search_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.score_batch"><code class="docutils literal notranslate"><span class="pre">PLAIDX.score_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.lsr">LSR (SPLADE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.lsr.LSR"><code class="docutils literal notranslate"><span class="pre">LSR</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.anserini"><code class="docutils literal notranslate"><span class="pre">LSR.anserini</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.model"><code class="docutils literal notranslate"><span class="pre">LSR.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.subset_mapper"><code class="docutils literal notranslate"><span class="pre">LSR.subset_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.__init__"><code class="docutils literal notranslate"><span class="pre">LSR.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.filter_subset"><code class="docutils literal notranslate"><span class="pre">LSR.filter_subset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.search_batch"><code class="docutils literal notranslate"><span class="pre">LSR.search_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.mt5">mT5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker"><code class="docutils literal notranslate"><span class="pre">MT5Reranker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.prompt"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.prompt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.model"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.tokenizer"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.tokenizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.q_max_length"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.q_max_length</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.d_max_length"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.d_max_length</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.batch_size"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.token_false_id"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.token_false_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.token_true_id"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.token_true_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#id0"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.prompt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.__init__"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.tokenize_pairs"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.tokenize_pairs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.forward"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.score"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.score()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#qwen3">Qwen3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#relay">Relay</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.fusion">Fusion</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.fusion.Fusion"><code class="docutils literal notranslate"><span class="pre">Fusion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.upstream"><code class="docutils literal notranslate"><span class="pre">Fusion.upstream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.fusion_function"><code class="docutils literal notranslate"><span class="pre">Fusion.fusion_function</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.fusion_args"><code class="docutils literal notranslate"><span class="pre">Fusion.fusion_args</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.__init__"><code class="docutils literal notranslate"><span class="pre">Fusion.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.search_batch"><code class="docutils literal notranslate"><span class="pre">Fusion.search_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.fusion.RRF"><code class="docutils literal notranslate"><span class="pre">RRF</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.RRF.fuse_batch"><code class="docutils literal notranslate"><span class="pre">RRF.fuse_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.fusion.ScoreFusion"><code class="docutils literal notranslate"><span class="pre">ScoreFusion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.ScoreFusion.fuse_batch"><code class="docutils literal notranslate"><span class="pre">ScoreFusion.fuse_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#llm-rerankers">LLM Rerankers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="processors.html">Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="processors.html#module-routir.processors.abstract">Base Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.abstract.Processor"><code class="docutils literal notranslate"><span class="pre">Processor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.abstract.Processor.cache"><code class="docutils literal notranslate"><span class="pre">Processor.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.abstract.Processor.cache_key"><code class="docutils literal notranslate"><span class="pre">Processor.cache_key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.abstract.Processor.__init__"><code class="docutils literal notranslate"><span class="pre">Processor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.abstract.Processor.start"><code class="docutils literal notranslate"><span class="pre">Processor.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.abstract.Processor.submit"><code class="docutils literal notranslate"><span class="pre">Processor.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.abstract.BatchProcessor"><code class="docutils literal notranslate"><span class="pre">BatchProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.abstract.BatchProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchProcessor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.abstract.BatchProcessor.start"><code class="docutils literal notranslate"><span class="pre">BatchProcessor.start()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html#module-routir.processors.query_processors">Query Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.query_processors.AsyncQueryProcessor"><code class="docutils literal notranslate"><span class="pre">AsyncQueryProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.query_processors.AsyncQueryProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">AsyncQueryProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.query_processors.BatchQueryProcessor"><code class="docutils literal notranslate"><span class="pre">BatchQueryProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.query_processors.BatchQueryProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchQueryProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html#module-routir.processors.content_processors">Content Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.content_processors.ContentProcessor"><code class="docutils literal notranslate"><span class="pre">ContentProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.content_processors.ContentProcessor.config"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.content_processors.ContentProcessor.line_reader"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.line_reader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.content_processors.ContentProcessor.content_field"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.content_processors.ContentProcessor.lang_mapping"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.content_processors.ContentProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html#module-routir.processors.score_processors">Score Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.score_processors.AsyncPairwiseScoreProcessor"><code class="docutils literal notranslate"><span class="pre">AsyncPairwiseScoreProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.score_processors.AsyncPairwiseScoreProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">AsyncPairwiseScoreProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.score_processors.BatchPairwiseScoreProcessor"><code class="docutils literal notranslate"><span class="pre">BatchPairwiseScoreProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.score_processors.BatchPairwiseScoreProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchPairwiseScoreProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html#module-routir.processors.cache">Cache</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.cache.Cache"><code class="docutils literal notranslate"><span class="pre">Cache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.__init__"><code class="docutils literal notranslate"><span class="pre">Cache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.get"><code class="docutils literal notranslate"><span class="pre">Cache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.put"><code class="docutils literal notranslate"><span class="pre">Cache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.remove"><code class="docutils literal notranslate"><span class="pre">Cache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.clear"><code class="docutils literal notranslate"><span class="pre">Cache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.__len__"><code class="docutils literal notranslate"><span class="pre">Cache.__len__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.connect"><code class="docutils literal notranslate"><span class="pre">Cache.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.close"><code class="docutils literal notranslate"><span class="pre">Cache.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.__aenter__"><code class="docutils literal notranslate"><span class="pre">Cache.__aenter__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.Cache.__aexit__"><code class="docutils literal notranslate"><span class="pre">Cache.__aexit__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.cache.LRUCache"><code class="docutils literal notranslate"><span class="pre">LRUCache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.LRUCache.__init__"><code class="docutils literal notranslate"><span class="pre">LRUCache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.LRUCache.get"><code class="docutils literal notranslate"><span class="pre">LRUCache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.LRUCache.put"><code class="docutils literal notranslate"><span class="pre">LRUCache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.LRUCache.remove"><code class="docutils literal notranslate"><span class="pre">LRUCache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.LRUCache.clear"><code class="docutils literal notranslate"><span class="pre">LRUCache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.LRUCache.__len__"><code class="docutils literal notranslate"><span class="pre">LRUCache.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache"><code class="docutils literal notranslate"><span class="pre">RedisCache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache.__init__"><code class="docutils literal notranslate"><span class="pre">RedisCache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache.connect"><code class="docutils literal notranslate"><span class="pre">RedisCache.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache.close"><code class="docutils literal notranslate"><span class="pre">RedisCache.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache.get"><code class="docutils literal notranslate"><span class="pre">RedisCache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache.put"><code class="docutils literal notranslate"><span class="pre">RedisCache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache.remove"><code class="docutils literal notranslate"><span class="pre">RedisCache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache.clear"><code class="docutils literal notranslate"><span class="pre">RedisCache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.cache.RedisCache.__len__"><code class="docutils literal notranslate"><span class="pre">RedisCache.__len__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html#file-random-access-reader">File Random Access Reader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html#module-routir.processors.registry">Registry</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.registry.DummyProcessor"><code class="docutils literal notranslate"><span class="pre">DummyProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.registry.DummyProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">DummyProcessor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="processors.html#routir.processors.registry.DummyProcessor.submit"><code class="docutils literal notranslate"><span class="pre">DummyProcessor.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="processors.html#routir.processors.registry.auto_register"><code class="docutils literal notranslate"><span class="pre">auto_register()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-routir.pipeline.pipeline">Pipeline Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline"><code class="docutils literal notranslate"><span class="pre">SearchPipeline</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.pipeline"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.collection"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.collection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.runtime_kwargs"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.runtime_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.doc_content_cache"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.doc_content_cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.__init__"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.verify"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.verify()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.from_string"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.from_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.get_doc_content"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.get_doc_content()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.run"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-routir.pipeline.parser">Parser</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall"><code class="docutils literal notranslate"><span class="pre">SystemCall</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.name"><code class="docutils literal notranslate"><span class="pre">SystemCall.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.alias"><code class="docutils literal notranslate"><span class="pre">SystemCall.alias</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.limit"><code class="docutils literal notranslate"><span class="pre">SystemCall.limit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.role"><code class="docutils literal notranslate"><span class="pre">SystemCall.role</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.all_calls"><code class="docutils literal notranslate"><span class="pre">SystemCall.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.as_role"><code class="docutils literal notranslate"><span class="pre">SystemCall.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.__init__"><code class="docutils literal notranslate"><span class="pre">SystemCall.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence"><code class="docutils literal notranslate"><span class="pre">CallSequence</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence.stages"><code class="docutils literal notranslate"><span class="pre">CallSequence.stages</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence.all_calls"><code class="docutils literal notranslate"><span class="pre">CallSequence.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence.as_role"><code class="docutils literal notranslate"><span class="pre">CallSequence.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence.__init__"><code class="docutils literal notranslate"><span class="pre">CallSequence.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.sequences"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.sequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.merger"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.merger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.expander"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.expander</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.all_calls"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.as_role"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.__init__"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.seq"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.seq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.system_call"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.system_call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.alias"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.alias()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.parallel_seq"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.parallel_seq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.stage"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.stage()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.seq_list"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.seq_list()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-routir.config.config">Config Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#routir.config.config.ServiceConfig"><code class="docutils literal notranslate"><span class="pre">ServiceConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.name"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.engine"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.config"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.processor"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.processor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.cache"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.cache_ttl"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_ttl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.max_wait_time"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.max_wait_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.cache_key_fields"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_key_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.cache_redis_url"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.cache_redis_kwargs"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.scoring_disabled"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.scoring_disabled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.processor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_ttl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.max_wait_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_key_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.scoring_disabled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ServiceConfig.model_config"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#routir.config.config.ColllectionConfig"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.name"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.doc_path"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.doc_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.offset_source"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.offset_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.id_field"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.content_field"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.id_to_lang_mapping"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_to_lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.cache_path"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.cache_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.doc_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.offset_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id15"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id16"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_to_lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.cache_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.model_post_init"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.model_post_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.ColllectionConfig.model_config"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#routir.config.config.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.Config.services"><code class="docutils literal notranslate"><span class="pre">Config.services</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.Config.collections"><code class="docutils literal notranslate"><span class="pre">Config.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.Config.server_imports"><code class="docutils literal notranslate"><span class="pre">Config.server_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.Config.file_imports"><code class="docutils literal notranslate"><span class="pre">Config.file_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.Config.dynamic_pipeline"><code class="docutils literal notranslate"><span class="pre">Config.dynamic_pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id19"><code class="docutils literal notranslate"><span class="pre">Config.services</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id20"><code class="docutils literal notranslate"><span class="pre">Config.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id21"><code class="docutils literal notranslate"><span class="pre">Config.server_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id22"><code class="docutils literal notranslate"><span class="pre">Config.file_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id23"><code class="docutils literal notranslate"><span class="pre">Config.dynamic_pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.config.config.Config.model_config"><code class="docutils literal notranslate"><span class="pre">Config.model_config</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#config-loader">Config Loader</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#faiss-indexing">Faiss Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-routir.utils.extensions">Extensions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#routir.utils.extensions.load_all_extensions"><code class="docutils literal notranslate"><span class="pre">load_all_extensions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-routir.utils.lazy_import">Lazy Import</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#routir.utils.lazy_import.LazyImportFinder"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#routir.utils.lazy_import.LazyImportFinder.__init__"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#routir.utils.lazy_import.LazyImportFinder.find_spec"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder.find_spec()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="serve.html">Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="serve.html#serve-module">Serve Module</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#development-setup">Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#running-tests">Running Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#code-style">Code Style</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../architecture.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../architecture.html#components">Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../architecture.html#models">Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../architecture.html#processors">Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../architecture.html#pipeline">Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../architecture.html#configuration">Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../changelog.html#version-0-0-1b9">Version 0.0.1b9</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../changelog.html#version-0-0-1">Version 0.0.1</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Routir</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h1>
+<p>This section contains auto-generated documentation for configuration modules.</p>
+<section id="module-routir.config.config">
+<span id="config-module"></span><h2>Config Module<a class="headerlink" href="#module-routir.config.config" title="Link to this heading"></a></h2>
+<p>Pydantic models for service configuration.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.config.config.</span></span><span class="sig-name descname"><span class="pre">ServiceConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processor='BatchQueryProcessor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache=-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size=32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl=600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_wait_time=0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key_fields=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_redis_url=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_redis_kwargs=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scoring_disabled=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/config/config.html#ServiceConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.config.config.ServiceConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Configuration for a search/ranking service.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.name" title="Link to this definition"></a></dt>
+<dd><p>Service identifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.engine">
+<span class="sig-name descname"><span class="pre">engine</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.engine" title="Link to this definition"></a></dt>
+<dd><p>Engine class to use; can be defined in external scripts or extensions
+(e.g., ‘PLAIDX’, ‘LSR’, ‘Qwen3’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.config">
+<span class="sig-name descname"><span class="pre">config</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.config" title="Link to this definition"></a></dt>
+<dd><p>Engine-specific configuration parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.processor">
+<span class="sig-name descname"><span class="pre">processor</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.processor" title="Link to this definition"></a></dt>
+<dd><p>Processor class name for handling requests</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.cache">
+<span class="sig-name descname"><span class="pre">cache</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.cache" title="Link to this definition"></a></dt>
+<dd><p>Cache size (-1 to disable)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.batch_size">
+<span class="sig-name descname"><span class="pre">batch_size</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.batch_size" title="Link to this definition"></a></dt>
+<dd><p>Number of requests to batch together</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.cache_ttl">
+<span class="sig-name descname"><span class="pre">cache_ttl</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.cache_ttl" title="Link to this definition"></a></dt>
+<dd><p>Time-to-live for cache entries in seconds</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.max_wait_time">
+<span class="sig-name descname"><span class="pre">max_wait_time</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.max_wait_time" title="Link to this definition"></a></dt>
+<dd><p>Maximum time to wait for batching in seconds</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.cache_key_fields">
+<span class="sig-name descname"><span class="pre">cache_key_fields</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.cache_key_fields" title="Link to this definition"></a></dt>
+<dd><p>Fields to use for cache key generation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.cache_redis_url">
+<span class="sig-name descname"><span class="pre">cache_redis_url</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.cache_redis_url" title="Link to this definition"></a></dt>
+<dd><p>Redis URL for distributed caching</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.cache_redis_kwargs">
+<span class="sig-name descname"><span class="pre">cache_redis_kwargs</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.cache_redis_kwargs" title="Link to this definition"></a></dt>
+<dd><p>Additional Redis configuration parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, Any] | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.scoring_disabled">
+<span class="sig-name descname"><span class="pre">scoring_disabled</span></span><a class="headerlink" href="#routir.config.config.ServiceConfig.scoring_disabled" title="Link to this definition"></a></dt>
+<dd><p>Whether to disable scoring functionality</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">engine</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">processor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">cache</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">batch_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">cache_ttl</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">max_wait_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></em><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">cache_key_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">cache_redis_url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">cache_redis_kwargs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">scoring_disabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ServiceConfig.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#routir.config.config.ServiceConfig.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.config.config.</span></span><span class="sig-name descname"><span class="pre">ColllectionConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offsetfile'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'text'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_to_lang_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/config/config.html#ColllectionConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.config.config.ColllectionConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Configuration for a document collection.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#routir.config.config.ColllectionConfig.name" title="Link to this definition"></a></dt>
+<dd><p>Collection identifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.doc_path">
+<span class="sig-name descname"><span class="pre">doc_path</span></span><a class="headerlink" href="#routir.config.config.ColllectionConfig.doc_path" title="Link to this definition"></a></dt>
+<dd><p>Path to the document file (typically JSONL)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.offset_source">
+<span class="sig-name descname"><span class="pre">offset_source</span></span><a class="headerlink" href="#routir.config.config.ColllectionConfig.offset_source" title="Link to this definition"></a></dt>
+<dd><p>Method for generating document offsets</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Literal[‘msmarco_seg’, ‘offsetfile’]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.id_field">
+<span class="sig-name descname"><span class="pre">id_field</span></span><a class="headerlink" href="#routir.config.config.ColllectionConfig.id_field" title="Link to this definition"></a></dt>
+<dd><p>JSON field name for document IDs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.content_field">
+<span class="sig-name descname"><span class="pre">content_field</span></span><a class="headerlink" href="#routir.config.config.ColllectionConfig.content_field" title="Link to this definition"></a></dt>
+<dd><p>JSON field name(s) for document content</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a> | List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.id_to_lang_mapping">
+<span class="sig-name descname"><span class="pre">id_to_lang_mapping</span></span><a class="headerlink" href="#routir.config.config.ColllectionConfig.id_to_lang_mapping" title="Link to this definition"></a></dt>
+<dd><p>Optional path to language mapping file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.cache_path">
+<span class="sig-name descname"><span class="pre">cache_path</span></span><a class="headerlink" href="#routir.config.config.ColllectionConfig.cache_path" title="Link to this definition"></a></dt>
+<dd><p>Optional path for offset map cache</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">doc_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">offset_source</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'msmarco_seg'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'offsetfile'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id15">
+<span class="sig-name descname"><span class="pre">id_field</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></em><a class="headerlink" href="#id15" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id16">
+<span class="sig-name descname"><span class="pre">content_field</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id16" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">id_to_lang_mapping</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id18">
+<span class="sig-name descname"><span class="pre">cache_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></em><a class="headerlink" href="#id18" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_ColllectionConfig__context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/config/config.html#ColllectionConfig.model_post_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.config.config.ColllectionConfig.model_post_init" title="Link to this definition"></a></dt>
+<dd><p>Ensure content_field is always a list.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.ColllectionConfig.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#routir.config.config.ColllectionConfig.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.config.config.Config">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.config.config.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">services=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collections=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_imports=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_imports=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_pipeline=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/config/config.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.config.config.Config" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Main configuration for the routir service.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.Config.services">
+<span class="sig-name descname"><span class="pre">services</span></span><a class="headerlink" href="#routir.config.config.Config.services" title="Link to this definition"></a></dt>
+<dd><p>List of engine service configurations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#routir.config.config.ServiceConfig" title="routir.config.config.ServiceConfig">routir.config.config.ServiceConfig</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.Config.collections">
+<span class="sig-name descname"><span class="pre">collections</span></span><a class="headerlink" href="#routir.config.config.Config.collections" title="Link to this definition"></a></dt>
+<dd><p>List of document collection configurations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#routir.config.config.ColllectionConfig" title="routir.config.config.ColllectionConfig">routir.config.config.ColllectionConfig</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.Config.server_imports">
+<span class="sig-name descname"><span class="pre">server_imports</span></span><a class="headerlink" href="#routir.config.config.Config.server_imports" title="Link to this definition"></a></dt>
+<dd><p>List of remote servers to import services from</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.Config.file_imports">
+<span class="sig-name descname"><span class="pre">file_imports</span></span><a class="headerlink" href="#routir.config.config.Config.file_imports" title="Link to this definition"></a></dt>
+<dd><p>List of Python files to import for custom extensions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.Config.dynamic_pipeline">
+<span class="sig-name descname"><span class="pre">dynamic_pipeline</span></span><a class="headerlink" href="#routir.config.config.Config.dynamic_pipeline" title="Link to this definition"></a></dt>
+<dd><p>Whether to enable dynamic pipeline creation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id19">
+<span class="sig-name descname"><span class="pre">services</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#routir.config.config.ServiceConfig" title="routir.config.config.ServiceConfig"><span class="pre">ServiceConfig</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id19" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id20">
+<span class="sig-name descname"><span class="pre">collections</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#routir.config.config.ColllectionConfig" title="routir.config.config.ColllectionConfig"><span class="pre">ColllectionConfig</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id20" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id21">
+<span class="sig-name descname"><span class="pre">server_imports</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id21" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id22">
+<span class="sig-name descname"><span class="pre">file_imports</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id22" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id23">
+<span class="sig-name descname"><span class="pre">dynamic_pipeline</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><a class="headerlink" href="#id23" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.config.config.Config.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#routir.config.config.Config.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="config-loader">
+<h2>Config Loader<a class="headerlink" href="#config-loader" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pipeline.html" class="btn btn-neutral float-left" title="Pipeline" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Routir Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

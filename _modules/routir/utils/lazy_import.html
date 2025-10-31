@@ -1,0 +1,562 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>routir.utils.lazy_import &mdash; Routir 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Routir
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../getting_started.html#starting-the-service">Starting the Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../getting_started.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../getting_started.html#http-api">HTTP API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../getting_started.html#available-services">1. Available services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../getting_started.html#search-an-index">2. Search an index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../getting_started.html#score-rerank">3. Score/Rerank</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../getting_started.html#search-with-dynamic-pipeline">4. Search with dynamic pipeline</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../getting_started.html#extension-examples">Extension Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../getting_started.html#pyterrier">PyTerrier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../getting_started.html#pyserini">Pyserini</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../getting_started.html#rank1">Rank1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../getting_started.html#other-helper-scripts">Other Helper Scripts</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/models.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/models.html#module-routir.models.abstract">Base Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.name"><code class="docutils literal notranslate"><span class="pre">Engine.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.config"><code class="docutils literal notranslate"><span class="pre">Engine.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.index_path"><code class="docutils literal notranslate"><span class="pre">Engine.index_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.__init__"><code class="docutils literal notranslate"><span class="pre">Engine.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.search_batch"><code class="docutils literal notranslate"><span class="pre">Engine.search_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.search"><code class="docutils literal notranslate"><span class="pre">Engine.search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.score_batch"><code class="docutils literal notranslate"><span class="pre">Engine.score_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.score"><code class="docutils literal notranslate"><span class="pre">Engine.score()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.decompose_query_batch"><code class="docutils literal notranslate"><span class="pre">Engine.decompose_query_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.decompose_query"><code class="docutils literal notranslate"><span class="pre">Engine.decompose_query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.fuse_batch"><code class="docutils literal notranslate"><span class="pre">Engine.fuse_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.fuse"><code class="docutils literal notranslate"><span class="pre">Engine.fuse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.can_search"><code class="docutils literal notranslate"><span class="pre">Engine.can_search</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.can_score"><code class="docutils literal notranslate"><span class="pre">Engine.can_score</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.can_decompose_query"><code class="docutils literal notranslate"><span class="pre">Engine.can_decompose_query</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Engine.can_fuse"><code class="docutils literal notranslate"><span class="pre">Engine.can_fuse</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Reranker"><code class="docutils literal notranslate"><span class="pre">Reranker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Reranker.upstream"><code class="docutils literal notranslate"><span class="pre">Reranker.upstream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Reranker.text_service"><code class="docutils literal notranslate"><span class="pre">Reranker.text_service</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Reranker.rerank_topk_max"><code class="docutils literal notranslate"><span class="pre">Reranker.rerank_topk_max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Reranker.rerank_multiplier"><code class="docutils literal notranslate"><span class="pre">Reranker.rerank_multiplier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Reranker.__init__"><code class="docutils literal notranslate"><span class="pre">Reranker.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Reranker.get_text"><code class="docutils literal notranslate"><span class="pre">Reranker.get_text()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Reranker.search_batch"><code class="docutils literal notranslate"><span class="pre">Reranker.search_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Aggregation"><code class="docutils literal notranslate"><span class="pre">Aggregation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Aggregation.mapping"><code class="docutils literal notranslate"><span class="pre">Aggregation.mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Aggregation.__init__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Aggregation.__contains__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__contains__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Aggregation.__getitem__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__getitem__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Aggregation.maxp"><code class="docutils literal notranslate"><span class="pre">Aggregation.maxp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Aggregation.n_docs"><code class="docutils literal notranslate"><span class="pre">Aggregation.n_docs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.abstract.Aggregation.__len__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__len__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/models.html#module-routir.models.plaidx">PLAID-X (ColBERT)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.colbert_all_pair_scores"><code class="docutils literal notranslate"><span class="pre">colbert_all_pair_scores()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX"><code class="docutils literal notranslate"><span class="pre">PLAIDX</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.colbert_config"><code class="docutils literal notranslate"><span class="pre">PLAIDX.colbert_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.searcher"><code class="docutils literal notranslate"><span class="pre">PLAIDX.searcher</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.passage_mapper"><code class="docutils literal notranslate"><span class="pre">PLAIDX.passage_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.subset_mapper"><code class="docutils literal notranslate"><span class="pre">PLAIDX.subset_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.inference_batch_size"><code class="docutils literal notranslate"><span class="pre">PLAIDX.inference_batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.__init__"><code class="docutils literal notranslate"><span class="pre">PLAIDX.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.filter_subset"><code class="docutils literal notranslate"><span class="pre">PLAIDX.filter_subset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.search_batch"><code class="docutils literal notranslate"><span class="pre">PLAIDX.search_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.plaidx.PLAIDX.score_batch"><code class="docutils literal notranslate"><span class="pre">PLAIDX.score_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/models.html#module-routir.models.lsr">LSR (SPLADE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.lsr.LSR"><code class="docutils literal notranslate"><span class="pre">LSR</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.lsr.LSR.anserini"><code class="docutils literal notranslate"><span class="pre">LSR.anserini</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.lsr.LSR.model"><code class="docutils literal notranslate"><span class="pre">LSR.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.lsr.LSR.subset_mapper"><code class="docutils literal notranslate"><span class="pre">LSR.subset_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.lsr.LSR.__init__"><code class="docutils literal notranslate"><span class="pre">LSR.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.lsr.LSR.filter_subset"><code class="docutils literal notranslate"><span class="pre">LSR.filter_subset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.lsr.LSR.search_batch"><code class="docutils literal notranslate"><span class="pre">LSR.search_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/models.html#module-routir.models.mt5">mT5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker"><code class="docutils literal notranslate"><span class="pre">MT5Reranker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.prompt"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.prompt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.model"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.tokenizer"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.tokenizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.q_max_length"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.q_max_length</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.d_max_length"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.d_max_length</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.batch_size"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.token_false_id"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.token_false_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.token_true_id"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.token_true_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#id0"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.prompt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.__init__"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.tokenize_pairs"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.tokenize_pairs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.forward"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.mt5.MT5Reranker.score"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.score()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/models.html#qwen3">Qwen3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/models.html#relay">Relay</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/models.html#module-routir.models.fusion">Fusion</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.Fusion"><code class="docutils literal notranslate"><span class="pre">Fusion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.Fusion.upstream"><code class="docutils literal notranslate"><span class="pre">Fusion.upstream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.Fusion.fusion_function"><code class="docutils literal notranslate"><span class="pre">Fusion.fusion_function</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.Fusion.fusion_args"><code class="docutils literal notranslate"><span class="pre">Fusion.fusion_args</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.Fusion.__init__"><code class="docutils literal notranslate"><span class="pre">Fusion.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.Fusion.search_batch"><code class="docutils literal notranslate"><span class="pre">Fusion.search_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.RRF"><code class="docutils literal notranslate"><span class="pre">RRF</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.RRF.fuse_batch"><code class="docutils literal notranslate"><span class="pre">RRF.fuse_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.ScoreFusion"><code class="docutils literal notranslate"><span class="pre">ScoreFusion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/models.html#routir.models.fusion.ScoreFusion.fuse_batch"><code class="docutils literal notranslate"><span class="pre">ScoreFusion.fuse_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/models.html#llm-rerankers">LLM Rerankers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/processors.html">Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/processors.html#module-routir.processors.abstract">Base Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.Processor"><code class="docutils literal notranslate"><span class="pre">Processor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.Processor.cache"><code class="docutils literal notranslate"><span class="pre">Processor.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.Processor.cache_key"><code class="docutils literal notranslate"><span class="pre">Processor.cache_key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.Processor.__init__"><code class="docutils literal notranslate"><span class="pre">Processor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.Processor.start"><code class="docutils literal notranslate"><span class="pre">Processor.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.Processor.submit"><code class="docutils literal notranslate"><span class="pre">Processor.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.BatchProcessor"><code class="docutils literal notranslate"><span class="pre">BatchProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.BatchProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchProcessor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.abstract.BatchProcessor.start"><code class="docutils literal notranslate"><span class="pre">BatchProcessor.start()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/processors.html#module-routir.processors.query_processors">Query Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.query_processors.AsyncQueryProcessor"><code class="docutils literal notranslate"><span class="pre">AsyncQueryProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.query_processors.AsyncQueryProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">AsyncQueryProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.query_processors.BatchQueryProcessor"><code class="docutils literal notranslate"><span class="pre">BatchQueryProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.query_processors.BatchQueryProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchQueryProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/processors.html#module-routir.processors.content_processors">Content Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.content_processors.ContentProcessor"><code class="docutils literal notranslate"><span class="pre">ContentProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.content_processors.ContentProcessor.config"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.content_processors.ContentProcessor.line_reader"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.line_reader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.content_processors.ContentProcessor.content_field"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.content_processors.ContentProcessor.lang_mapping"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.content_processors.ContentProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/processors.html#module-routir.processors.score_processors">Score Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.score_processors.AsyncPairwiseScoreProcessor"><code class="docutils literal notranslate"><span class="pre">AsyncPairwiseScoreProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.score_processors.AsyncPairwiseScoreProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">AsyncPairwiseScoreProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.score_processors.BatchPairwiseScoreProcessor"><code class="docutils literal notranslate"><span class="pre">BatchPairwiseScoreProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.score_processors.BatchPairwiseScoreProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchPairwiseScoreProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/processors.html#module-routir.processors.cache">Cache</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache"><code class="docutils literal notranslate"><span class="pre">Cache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.__init__"><code class="docutils literal notranslate"><span class="pre">Cache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.get"><code class="docutils literal notranslate"><span class="pre">Cache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.put"><code class="docutils literal notranslate"><span class="pre">Cache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.remove"><code class="docutils literal notranslate"><span class="pre">Cache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.clear"><code class="docutils literal notranslate"><span class="pre">Cache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.__len__"><code class="docutils literal notranslate"><span class="pre">Cache.__len__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.connect"><code class="docutils literal notranslate"><span class="pre">Cache.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.close"><code class="docutils literal notranslate"><span class="pre">Cache.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.__aenter__"><code class="docutils literal notranslate"><span class="pre">Cache.__aenter__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.Cache.__aexit__"><code class="docutils literal notranslate"><span class="pre">Cache.__aexit__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.LRUCache"><code class="docutils literal notranslate"><span class="pre">LRUCache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.LRUCache.__init__"><code class="docutils literal notranslate"><span class="pre">LRUCache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.LRUCache.get"><code class="docutils literal notranslate"><span class="pre">LRUCache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.LRUCache.put"><code class="docutils literal notranslate"><span class="pre">LRUCache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.LRUCache.remove"><code class="docutils literal notranslate"><span class="pre">LRUCache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.LRUCache.clear"><code class="docutils literal notranslate"><span class="pre">LRUCache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.LRUCache.__len__"><code class="docutils literal notranslate"><span class="pre">LRUCache.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache"><code class="docutils literal notranslate"><span class="pre">RedisCache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache.__init__"><code class="docutils literal notranslate"><span class="pre">RedisCache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache.connect"><code class="docutils literal notranslate"><span class="pre">RedisCache.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache.close"><code class="docutils literal notranslate"><span class="pre">RedisCache.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache.get"><code class="docutils literal notranslate"><span class="pre">RedisCache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache.put"><code class="docutils literal notranslate"><span class="pre">RedisCache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache.remove"><code class="docutils literal notranslate"><span class="pre">RedisCache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache.clear"><code class="docutils literal notranslate"><span class="pre">RedisCache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.cache.RedisCache.__len__"><code class="docutils literal notranslate"><span class="pre">RedisCache.__len__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/processors.html#file-random-access-reader">File Random Access Reader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/processors.html#module-routir.processors.registry">Registry</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.registry.DummyProcessor"><code class="docutils literal notranslate"><span class="pre">DummyProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.registry.DummyProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">DummyProcessor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/processors.html#routir.processors.registry.DummyProcessor.submit"><code class="docutils literal notranslate"><span class="pre">DummyProcessor.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/processors.html#routir.processors.registry.auto_register"><code class="docutils literal notranslate"><span class="pre">auto_register()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pipeline.html">Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pipeline.html#module-routir.pipeline.pipeline">Pipeline Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline"><code class="docutils literal notranslate"><span class="pre">SearchPipeline</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.pipeline"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.collection"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.collection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.runtime_kwargs"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.runtime_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.doc_content_cache"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.doc_content_cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.__init__"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.verify"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.verify()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.from_string"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.from_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.get_doc_content"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.get_doc_content()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.pipeline.SearchPipeline.run"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/pipeline.html#module-routir.pipeline.parser">Parser</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.SystemCall"><code class="docutils literal notranslate"><span class="pre">SystemCall</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.SystemCall.name"><code class="docutils literal notranslate"><span class="pre">SystemCall.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.SystemCall.alias"><code class="docutils literal notranslate"><span class="pre">SystemCall.alias</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.SystemCall.limit"><code class="docutils literal notranslate"><span class="pre">SystemCall.limit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.SystemCall.role"><code class="docutils literal notranslate"><span class="pre">SystemCall.role</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.SystemCall.all_calls"><code class="docutils literal notranslate"><span class="pre">SystemCall.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.SystemCall.as_role"><code class="docutils literal notranslate"><span class="pre">SystemCall.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.SystemCall.__init__"><code class="docutils literal notranslate"><span class="pre">SystemCall.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.CallSequence"><code class="docutils literal notranslate"><span class="pre">CallSequence</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.CallSequence.stages"><code class="docutils literal notranslate"><span class="pre">CallSequence.stages</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.CallSequence.all_calls"><code class="docutils literal notranslate"><span class="pre">CallSequence.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.CallSequence.as_role"><code class="docutils literal notranslate"><span class="pre">CallSequence.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.CallSequence.__init__"><code class="docutils literal notranslate"><span class="pre">CallSequence.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.ParallelCallSequences"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.ParallelCallSequences.sequences"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.sequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.ParallelCallSequences.merger"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.merger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.ParallelCallSequences.expander"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.expander</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.ParallelCallSequences.all_calls"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.ParallelCallSequences.as_role"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.ParallelCallSequences.__init__"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.PipelineTransformer"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.PipelineTransformer.seq"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.seq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.PipelineTransformer.system_call"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.system_call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.PipelineTransformer.alias"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.alias()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.PipelineTransformer.parallel_seq"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.parallel_seq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.PipelineTransformer.stage"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.stage()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/pipeline.html#routir.pipeline.parser.PipelineTransformer.seq_list"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.seq_list()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/config.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/config.html#module-routir.config.config">Config Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig"><code class="docutils literal notranslate"><span class="pre">ServiceConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.name"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.engine"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.config"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.processor"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.processor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.cache"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.cache_ttl"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_ttl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.max_wait_time"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.max_wait_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.cache_key_fields"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_key_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.cache_redis_url"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.cache_redis_kwargs"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.scoring_disabled"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.scoring_disabled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id0"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id1"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id2"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id3"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.processor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id4"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id5"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id6"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_ttl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id7"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.max_wait_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id8"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_key_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id9"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id10"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id11"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.scoring_disabled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ServiceConfig.model_config"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.name"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.doc_path"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.doc_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.offset_source"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.offset_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.id_field"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.content_field"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.id_to_lang_mapping"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_to_lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.cache_path"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.cache_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id12"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id13"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.doc_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id14"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.offset_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id15"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id16"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id17"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_to_lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id18"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.cache_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.model_post_init"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.model_post_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.ColllectionConfig.model_config"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/config.html#routir.config.config.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.Config.services"><code class="docutils literal notranslate"><span class="pre">Config.services</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.Config.collections"><code class="docutils literal notranslate"><span class="pre">Config.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.Config.server_imports"><code class="docutils literal notranslate"><span class="pre">Config.server_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.Config.file_imports"><code class="docutils literal notranslate"><span class="pre">Config.file_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.Config.dynamic_pipeline"><code class="docutils literal notranslate"><span class="pre">Config.dynamic_pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id19"><code class="docutils literal notranslate"><span class="pre">Config.services</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id20"><code class="docutils literal notranslate"><span class="pre">Config.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id21"><code class="docutils literal notranslate"><span class="pre">Config.server_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id22"><code class="docutils literal notranslate"><span class="pre">Config.file_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#id23"><code class="docutils literal notranslate"><span class="pre">Config.dynamic_pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/config.html#routir.config.config.Config.model_config"><code class="docutils literal notranslate"><span class="pre">Config.model_config</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/config.html#config-loader">Config Loader</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utils.html">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/utils.html#faiss-indexing">Faiss Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/utils.html#module-routir.utils.extensions">Extensions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/utils.html#routir.utils.extensions.load_all_extensions"><code class="docutils literal notranslate"><span class="pre">load_all_extensions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/utils.html#module-routir.utils.lazy_import">Lazy Import</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/utils.html#routir.utils.lazy_import.LazyImportFinder"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#routir.utils.lazy_import.LazyImportFinder.__init__"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/utils.html#routir.utils.lazy_import.LazyImportFinder.find_spec"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder.find_spec()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/serve.html">Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/serve.html#serve-module">Serve Module</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#development-setup">Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#running-tests">Running Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#code-style">Code Style</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../architecture.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../architecture.html#components">Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../architecture.html#models">Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../architecture.html#processors">Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../architecture.html#pipeline">Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../architecture.html#configuration">Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#version-0-0-1b9">Version 0.0.1b9</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#version-0-0-1">Version 0.0.1</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Routir</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">routir.utils.lazy_import</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for routir.utils.lazy_import</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+
+<div class="viewcode-block" id="LazyImportFinder">
+<a class="viewcode-back" href="../../../api/utils.html#routir.utils.lazy_import.LazyImportFinder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LazyImportFinder</span><span class="p">:</span>
+<div class="viewcode-block" id="LazyImportFinder.__init__">
+<a class="viewcode-back" href="../../../api/utils.html#routir.utils.lazy_import.LazyImportFinder.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_importing</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># Track what we&#39;re currently importing</span></div>
+
+
+<div class="viewcode-block" id="LazyImportFinder.find_spec">
+<a class="viewcode-back" href="../../../api/utils.html#routir.utils.lazy_import.LazyImportFinder.find_spec">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullname</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Prevent recursion</span>
+        <span class="k">if</span> <span class="n">fullname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_importing</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_should_be_lazy</span><span class="p">(</span><span class="n">fullname</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_importing</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fullname</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Find the real spec using the original meta_path (excluding ourselves)</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">finder</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">meta_path</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">finder</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">finder</span><span class="p">,</span> <span class="s1">&#39;find_spec&#39;</span><span class="p">):</span>
+                    <span class="n">spec</span> <span class="o">=</span> <span class="n">finder</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="n">fullname</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="p">,</span> <span class="s1">&#39;exec_module&#39;</span><span class="p">):</span>
+                <span class="c1"># Wrap with LazyLoader</span>
+                <span class="n">spec</span><span class="o">.</span><span class="n">loader</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">LazyLoader</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">spec</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_importing</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">fullname</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_should_be_lazy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullname</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">lazy_module</span> <span class="ow">in</span> <span class="n">_lazy_modules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fullname</span> <span class="o">==</span> <span class="n">lazy_module</span> <span class="ow">or</span> <span class="n">fullname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">lazy_module</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<span class="c1"># Mark which modules should be lazy (base modules)</span>
+<span class="c1"># would love to lazy load torch and transformers but their import process is too complicated</span>
+<span class="n">_lazy_modules</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;bsparse&#39;</span><span class="p">,</span> <span class="s1">&#39;faiss&#39;</span><span class="p">}</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">meta_path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">LazyImportFinder</span><span class="p">())</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Routir Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

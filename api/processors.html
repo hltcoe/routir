@@ -1,0 +1,1120 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processors &mdash; Routir 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pipeline" href="pipeline.html" />
+    <link rel="prev" title="Models" href="models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Routir
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#starting-the-service">Starting the Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#http-api">HTTP API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#available-services">1. Available services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#search-an-index">2. Search an index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#score-rerank">3. Score/Rerank</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#search-with-dynamic-pipeline">4. Search with dynamic pipeline</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#extension-examples">Extension Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#pyterrier">PyTerrier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#pyserini">Pyserini</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started.html#rank1">Rank1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#other-helper-scripts">Other Helper Scripts</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.abstract">Base Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.abstract.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.name"><code class="docutils literal notranslate"><span class="pre">Engine.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.config"><code class="docutils literal notranslate"><span class="pre">Engine.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.index_path"><code class="docutils literal notranslate"><span class="pre">Engine.index_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.__init__"><code class="docutils literal notranslate"><span class="pre">Engine.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.search_batch"><code class="docutils literal notranslate"><span class="pre">Engine.search_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.search"><code class="docutils literal notranslate"><span class="pre">Engine.search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.score_batch"><code class="docutils literal notranslate"><span class="pre">Engine.score_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.score"><code class="docutils literal notranslate"><span class="pre">Engine.score()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.decompose_query_batch"><code class="docutils literal notranslate"><span class="pre">Engine.decompose_query_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.decompose_query"><code class="docutils literal notranslate"><span class="pre">Engine.decompose_query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.fuse_batch"><code class="docutils literal notranslate"><span class="pre">Engine.fuse_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.fuse"><code class="docutils literal notranslate"><span class="pre">Engine.fuse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.can_search"><code class="docutils literal notranslate"><span class="pre">Engine.can_search</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.can_score"><code class="docutils literal notranslate"><span class="pre">Engine.can_score</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.can_decompose_query"><code class="docutils literal notranslate"><span class="pre">Engine.can_decompose_query</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Engine.can_fuse"><code class="docutils literal notranslate"><span class="pre">Engine.can_fuse</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.abstract.Reranker"><code class="docutils literal notranslate"><span class="pre">Reranker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.upstream"><code class="docutils literal notranslate"><span class="pre">Reranker.upstream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.text_service"><code class="docutils literal notranslate"><span class="pre">Reranker.text_service</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.rerank_topk_max"><code class="docutils literal notranslate"><span class="pre">Reranker.rerank_topk_max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.rerank_multiplier"><code class="docutils literal notranslate"><span class="pre">Reranker.rerank_multiplier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.__init__"><code class="docutils literal notranslate"><span class="pre">Reranker.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.get_text"><code class="docutils literal notranslate"><span class="pre">Reranker.get_text()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Reranker.search_batch"><code class="docutils literal notranslate"><span class="pre">Reranker.search_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation"><code class="docutils literal notranslate"><span class="pre">Aggregation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.mapping"><code class="docutils literal notranslate"><span class="pre">Aggregation.mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.__init__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.__contains__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__contains__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.__getitem__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__getitem__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.maxp"><code class="docutils literal notranslate"><span class="pre">Aggregation.maxp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.n_docs"><code class="docutils literal notranslate"><span class="pre">Aggregation.n_docs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.abstract.Aggregation.__len__"><code class="docutils literal notranslate"><span class="pre">Aggregation.__len__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.plaidx">PLAID-X (ColBERT)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.plaidx.colbert_all_pair_scores"><code class="docutils literal notranslate"><span class="pre">colbert_all_pair_scores()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX"><code class="docutils literal notranslate"><span class="pre">PLAIDX</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.colbert_config"><code class="docutils literal notranslate"><span class="pre">PLAIDX.colbert_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.searcher"><code class="docutils literal notranslate"><span class="pre">PLAIDX.searcher</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.passage_mapper"><code class="docutils literal notranslate"><span class="pre">PLAIDX.passage_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.subset_mapper"><code class="docutils literal notranslate"><span class="pre">PLAIDX.subset_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.inference_batch_size"><code class="docutils literal notranslate"><span class="pre">PLAIDX.inference_batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.__init__"><code class="docutils literal notranslate"><span class="pre">PLAIDX.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.filter_subset"><code class="docutils literal notranslate"><span class="pre">PLAIDX.filter_subset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.search_batch"><code class="docutils literal notranslate"><span class="pre">PLAIDX.search_batch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.plaidx.PLAIDX.score_batch"><code class="docutils literal notranslate"><span class="pre">PLAIDX.score_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.lsr">LSR (SPLADE)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.lsr.LSR"><code class="docutils literal notranslate"><span class="pre">LSR</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.anserini"><code class="docutils literal notranslate"><span class="pre">LSR.anserini</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.model"><code class="docutils literal notranslate"><span class="pre">LSR.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.subset_mapper"><code class="docutils literal notranslate"><span class="pre">LSR.subset_mapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.__init__"><code class="docutils literal notranslate"><span class="pre">LSR.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.filter_subset"><code class="docutils literal notranslate"><span class="pre">LSR.filter_subset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.lsr.LSR.search_batch"><code class="docutils literal notranslate"><span class="pre">LSR.search_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.mt5">mT5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker"><code class="docutils literal notranslate"><span class="pre">MT5Reranker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.prompt"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.prompt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.model"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.tokenizer"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.tokenizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.q_max_length"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.q_max_length</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.d_max_length"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.d_max_length</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.batch_size"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.token_false_id"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.token_false_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.token_true_id"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.token_true_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#id0"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.prompt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.__init__"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.tokenize_pairs"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.tokenize_pairs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.forward"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.mt5.MT5Reranker.score"><code class="docutils literal notranslate"><span class="pre">MT5Reranker.score()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#qwen3">Qwen3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#relay">Relay</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-routir.models.fusion">Fusion</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.fusion.Fusion"><code class="docutils literal notranslate"><span class="pre">Fusion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.upstream"><code class="docutils literal notranslate"><span class="pre">Fusion.upstream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.fusion_function"><code class="docutils literal notranslate"><span class="pre">Fusion.fusion_function</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.fusion_args"><code class="docutils literal notranslate"><span class="pre">Fusion.fusion_args</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.__init__"><code class="docutils literal notranslate"><span class="pre">Fusion.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.Fusion.search_batch"><code class="docutils literal notranslate"><span class="pre">Fusion.search_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.fusion.RRF"><code class="docutils literal notranslate"><span class="pre">RRF</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.RRF.fuse_batch"><code class="docutils literal notranslate"><span class="pre">RRF.fuse_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#routir.models.fusion.ScoreFusion"><code class="docutils literal notranslate"><span class="pre">ScoreFusion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="models.html#routir.models.fusion.ScoreFusion.fuse_batch"><code class="docutils literal notranslate"><span class="pre">ScoreFusion.fuse_batch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#llm-rerankers">LLM Rerankers</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-routir.processors.abstract">Base Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.abstract.Processor"><code class="docutils literal notranslate"><span class="pre">Processor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.abstract.Processor.cache"><code class="docutils literal notranslate"><span class="pre">Processor.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.abstract.Processor.cache_key"><code class="docutils literal notranslate"><span class="pre">Processor.cache_key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.abstract.Processor.__init__"><code class="docutils literal notranslate"><span class="pre">Processor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.abstract.Processor.start"><code class="docutils literal notranslate"><span class="pre">Processor.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.abstract.Processor.submit"><code class="docutils literal notranslate"><span class="pre">Processor.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.abstract.BatchProcessor"><code class="docutils literal notranslate"><span class="pre">BatchProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.abstract.BatchProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchProcessor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.abstract.BatchProcessor.start"><code class="docutils literal notranslate"><span class="pre">BatchProcessor.start()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-routir.processors.query_processors">Query Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.query_processors.AsyncQueryProcessor"><code class="docutils literal notranslate"><span class="pre">AsyncQueryProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.query_processors.AsyncQueryProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">AsyncQueryProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.query_processors.BatchQueryProcessor"><code class="docutils literal notranslate"><span class="pre">BatchQueryProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.query_processors.BatchQueryProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchQueryProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-routir.processors.content_processors">Content Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.content_processors.ContentProcessor"><code class="docutils literal notranslate"><span class="pre">ContentProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.content_processors.ContentProcessor.config"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.content_processors.ContentProcessor.line_reader"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.line_reader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.content_processors.ContentProcessor.content_field"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.content_processors.ContentProcessor.lang_mapping"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.content_processors.ContentProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">ContentProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-routir.processors.score_processors">Score Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.score_processors.AsyncPairwiseScoreProcessor"><code class="docutils literal notranslate"><span class="pre">AsyncPairwiseScoreProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.score_processors.AsyncPairwiseScoreProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">AsyncPairwiseScoreProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.score_processors.BatchPairwiseScoreProcessor"><code class="docutils literal notranslate"><span class="pre">BatchPairwiseScoreProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.score_processors.BatchPairwiseScoreProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">BatchPairwiseScoreProcessor.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-routir.processors.cache">Cache</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.cache.Cache"><code class="docutils literal notranslate"><span class="pre">Cache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.__init__"><code class="docutils literal notranslate"><span class="pre">Cache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.get"><code class="docutils literal notranslate"><span class="pre">Cache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.put"><code class="docutils literal notranslate"><span class="pre">Cache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.remove"><code class="docutils literal notranslate"><span class="pre">Cache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.clear"><code class="docutils literal notranslate"><span class="pre">Cache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.__len__"><code class="docutils literal notranslate"><span class="pre">Cache.__len__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.connect"><code class="docutils literal notranslate"><span class="pre">Cache.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.close"><code class="docutils literal notranslate"><span class="pre">Cache.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.__aenter__"><code class="docutils literal notranslate"><span class="pre">Cache.__aenter__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.Cache.__aexit__"><code class="docutils literal notranslate"><span class="pre">Cache.__aexit__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.cache.LRUCache"><code class="docutils literal notranslate"><span class="pre">LRUCache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.LRUCache.__init__"><code class="docutils literal notranslate"><span class="pre">LRUCache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.LRUCache.get"><code class="docutils literal notranslate"><span class="pre">LRUCache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.LRUCache.put"><code class="docutils literal notranslate"><span class="pre">LRUCache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.LRUCache.remove"><code class="docutils literal notranslate"><span class="pre">LRUCache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.LRUCache.clear"><code class="docutils literal notranslate"><span class="pre">LRUCache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.LRUCache.__len__"><code class="docutils literal notranslate"><span class="pre">LRUCache.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.cache.RedisCache"><code class="docutils literal notranslate"><span class="pre">RedisCache</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.RedisCache.__init__"><code class="docutils literal notranslate"><span class="pre">RedisCache.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.RedisCache.connect"><code class="docutils literal notranslate"><span class="pre">RedisCache.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.RedisCache.close"><code class="docutils literal notranslate"><span class="pre">RedisCache.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.RedisCache.get"><code class="docutils literal notranslate"><span class="pre">RedisCache.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.RedisCache.put"><code class="docutils literal notranslate"><span class="pre">RedisCache.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.RedisCache.remove"><code class="docutils literal notranslate"><span class="pre">RedisCache.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.RedisCache.clear"><code class="docutils literal notranslate"><span class="pre">RedisCache.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.cache.RedisCache.__len__"><code class="docutils literal notranslate"><span class="pre">RedisCache.__len__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#file-random-access-reader">File Random Access Reader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-routir.processors.registry">Registry</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.registry.DummyProcessor"><code class="docutils literal notranslate"><span class="pre">DummyProcessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.registry.DummyProcessor.__init__"><code class="docutils literal notranslate"><span class="pre">DummyProcessor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#routir.processors.registry.DummyProcessor.submit"><code class="docutils literal notranslate"><span class="pre">DummyProcessor.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#routir.processors.registry.auto_register"><code class="docutils literal notranslate"><span class="pre">auto_register()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-routir.pipeline.pipeline">Pipeline Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline"><code class="docutils literal notranslate"><span class="pre">SearchPipeline</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.pipeline"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.collection"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.collection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.runtime_kwargs"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.runtime_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.doc_content_cache"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.doc_content_cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.__init__"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.verify"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.verify()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.from_string"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.from_string()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.get_doc_content"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.get_doc_content()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.pipeline.SearchPipeline.run"><code class="docutils literal notranslate"><span class="pre">SearchPipeline.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline.html#module-routir.pipeline.parser">Parser</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall"><code class="docutils literal notranslate"><span class="pre">SystemCall</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.name"><code class="docutils literal notranslate"><span class="pre">SystemCall.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.alias"><code class="docutils literal notranslate"><span class="pre">SystemCall.alias</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.limit"><code class="docutils literal notranslate"><span class="pre">SystemCall.limit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.role"><code class="docutils literal notranslate"><span class="pre">SystemCall.role</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.all_calls"><code class="docutils literal notranslate"><span class="pre">SystemCall.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.as_role"><code class="docutils literal notranslate"><span class="pre">SystemCall.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.SystemCall.__init__"><code class="docutils literal notranslate"><span class="pre">SystemCall.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence"><code class="docutils literal notranslate"><span class="pre">CallSequence</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence.stages"><code class="docutils literal notranslate"><span class="pre">CallSequence.stages</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence.all_calls"><code class="docutils literal notranslate"><span class="pre">CallSequence.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence.as_role"><code class="docutils literal notranslate"><span class="pre">CallSequence.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.CallSequence.__init__"><code class="docutils literal notranslate"><span class="pre">CallSequence.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.sequences"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.sequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.merger"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.merger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.expander"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.expander</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.all_calls"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.all_calls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.as_role"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.as_role()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.ParallelCallSequences.__init__"><code class="docutils literal notranslate"><span class="pre">ParallelCallSequences.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.seq"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.seq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.system_call"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.system_call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.alias"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.alias()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.parallel_seq"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.parallel_seq()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.stage"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.stage()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pipeline.html#routir.pipeline.parser.PipelineTransformer.seq_list"><code class="docutils literal notranslate"><span class="pre">PipelineTransformer.seq_list()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#module-routir.config.config">Config Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig"><code class="docutils literal notranslate"><span class="pre">ServiceConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.name"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.engine"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.config"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.processor"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.processor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.cache"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.cache_ttl"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_ttl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.max_wait_time"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.max_wait_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.cache_key_fields"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_key_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.cache_redis_url"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.cache_redis_kwargs"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.scoring_disabled"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.scoring_disabled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id0"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id1"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id2"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id3"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.processor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id4"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id5"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.batch_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id6"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_ttl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id7"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.max_wait_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id8"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_key_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id9"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id10"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.cache_redis_kwargs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id11"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.scoring_disabled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ServiceConfig.model_config"><code class="docutils literal notranslate"><span class="pre">ServiceConfig.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.name"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.doc_path"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.doc_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.offset_source"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.offset_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.id_field"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.content_field"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.id_to_lang_mapping"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_to_lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.cache_path"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.cache_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id12"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id13"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.doc_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id14"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.offset_source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id15"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id16"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.content_field</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id17"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.id_to_lang_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id18"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.cache_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.model_post_init"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.model_post_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.ColllectionConfig.model_config"><code class="docutils literal notranslate"><span class="pre">ColllectionConfig.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#routir.config.config.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.Config.services"><code class="docutils literal notranslate"><span class="pre">Config.services</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.Config.collections"><code class="docutils literal notranslate"><span class="pre">Config.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.Config.server_imports"><code class="docutils literal notranslate"><span class="pre">Config.server_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.Config.file_imports"><code class="docutils literal notranslate"><span class="pre">Config.file_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.Config.dynamic_pipeline"><code class="docutils literal notranslate"><span class="pre">Config.dynamic_pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id19"><code class="docutils literal notranslate"><span class="pre">Config.services</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id20"><code class="docutils literal notranslate"><span class="pre">Config.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id21"><code class="docutils literal notranslate"><span class="pre">Config.server_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id22"><code class="docutils literal notranslate"><span class="pre">Config.file_imports</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#id23"><code class="docutils literal notranslate"><span class="pre">Config.dynamic_pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="config.html#routir.config.config.Config.model_config"><code class="docutils literal notranslate"><span class="pre">Config.model_config</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#config-loader">Config Loader</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#faiss-indexing">Faiss Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-routir.utils.extensions">Extensions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#routir.utils.extensions.load_all_extensions"><code class="docutils literal notranslate"><span class="pre">load_all_extensions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-routir.utils.lazy_import">Lazy Import</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html#routir.utils.lazy_import.LazyImportFinder"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#routir.utils.lazy_import.LazyImportFinder.__init__"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html#routir.utils.lazy_import.LazyImportFinder.find_spec"><code class="docutils literal notranslate"><span class="pre">LazyImportFinder.find_spec()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="serve.html">Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="serve.html#serve-module">Serve Module</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#development-setup">Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#running-tests">Running Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#code-style">Code Style</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../architecture.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../architecture.html#components">Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../architecture.html#models">Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../architecture.html#processors">Processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../architecture.html#pipeline">Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../architecture.html#configuration">Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../changelog.html#version-0-0-1b9">Version 0.0.1b9</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../changelog.html#version-0-0-1">Version 0.0.1</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Routir</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Processors</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/processors.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="processors">
+<h1>Processors<a class="headerlink" href="#processors" title="Link to this heading"></a></h1>
+<p>This section contains auto-generated documentation for all processor classes in Routir.
+Processors handle request batching, caching, and content processing.</p>
+<section id="module-routir.processors.abstract">
+<span id="base-classes"></span><h2>Base Classes<a class="headerlink" href="#module-routir.processors.abstract" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.abstract.Processor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.abstract.</span></span><span class="sig-name descname"><span class="pre">Processor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/abstract.html#Processor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.abstract.Processor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">FactoryEnabled</span></code></p>
+<p>Base class for request processors with caching support.</p>
+<p>Handles request submission with optional caching via LRU or Redis.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.processors.abstract.Processor.cache">
+<span class="sig-name descname"><span class="pre">cache</span></span><a class="headerlink" href="#routir.processors.abstract.Processor.cache" title="Link to this definition"></a></dt>
+<dd><p>Cache instance (LRU or Redis)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.processors.abstract.Processor.cache_key">
+<span class="sig-name descname"><span class="pre">cache_key</span></span><a class="headerlink" href="#routir.processors.abstract.Processor.cache_key" title="Link to this definition"></a></dt>
+<dd><p>Function to generate cache keys from requests</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.abstract.Processor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/abstract.html#Processor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.abstract.Processor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize processor with caching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cache_size</strong> – Maximum cache entries (-1 to disable)</p></li>
+<li><p><strong>cache_ttl</strong> – Cache entry time-to-live in seconds</p></li>
+<li><p><strong>cache_key</strong> – Function to generate cache keys from requests</p></li>
+<li><p><strong>redis_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Optional Redis URL for distributed caching</p></li>
+<li><p><strong>redis_kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>) – Additional Redis configuration</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.abstract.Processor.start">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/abstract.html#Processor.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.abstract.Processor.start" title="Link to this definition"></a></dt>
+<dd><p>Initialize the processor (called before serving requests).</p>
+<p>Heavy initialization tasks can be performed here.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.abstract.Processor.submit">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/abstract.html#Processor.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.abstract.Processor.submit" title="Link to this definition"></a></dt>
+<dd><p>Submit a request for processing with caching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>item</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>) – Request data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Response dict with ‘cached’ field indicating cache hit/miss</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.abstract.BatchProcessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.abstract.</span></span><span class="sig-name descname"><span class="pre">BatchProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/abstract.html#BatchProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.abstract.BatchProcessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.abstract.Processor" title="routir.processors.abstract.Processor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Processor</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.abstract.BatchProcessor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/abstract.html#BatchProcessor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.abstract.BatchProcessor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Simple dynamic batch processor for batching similar requests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_size</strong> – Maximum number of items in a batch</p></li>
+<li><p><strong>max_wait_time</strong> – Maximum time to wait before processing a partial batch</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.abstract.BatchProcessor.start">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/abstract.html#BatchProcessor.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.abstract.BatchProcessor.start" title="Link to this definition"></a></dt>
+<dd><p>Initialize and start the batch processor.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-routir.processors.query_processors">
+<span id="query-processors"></span><h2>Query Processors<a class="headerlink" href="#module-routir.processors.query_processors" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.query_processors.AsyncQueryProcessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.query_processors.</span></span><span class="sig-name descname"><span class="pre">AsyncQueryProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/query_processors.html#AsyncQueryProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.query_processors.AsyncQueryProcessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.abstract.Processor" title="routir.processors.abstract.Processor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Processor</span></code></a></p>
+<p>Processor that serve every request independently through async calls.
+Should be used when all the engine does is issuing async calls</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.query_processors.AsyncQueryProcessor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/query_processors.html#AsyncQueryProcessor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.query_processors.AsyncQueryProcessor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize processor with caching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cache_size</strong> – Maximum cache entries (-1 to disable)</p></li>
+<li><p><strong>cache_ttl</strong> – Cache entry time-to-live in seconds</p></li>
+<li><p><strong>cache_key</strong> – Function to generate cache keys from requests</p></li>
+<li><p><strong>redis_url</strong> – Optional Redis URL for distributed caching</p></li>
+<li><p><strong>redis_kwargs</strong> – Additional Redis configuration</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.query_processors.BatchQueryProcessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.query_processors.</span></span><span class="sig-name descname"><span class="pre">BatchQueryProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/query_processors.html#BatchQueryProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.query_processors.BatchQueryProcessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.abstract.BatchProcessor" title="routir.processors.abstract.BatchProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">BatchProcessor</span></code></a></p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.query_processors.BatchQueryProcessor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/query_processors.html#BatchQueryProcessor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.query_processors.BatchQueryProcessor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Simple dynamic batch processor for batching similar requests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_size</strong> – Maximum number of items in a batch</p></li>
+<li><p><strong>max_wait_time</strong> – Maximum time to wait before processing a partial batch</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-routir.processors.content_processors">
+<span id="content-processors"></span><h2>Content Processors<a class="headerlink" href="#module-routir.processors.content_processors" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.content_processors.ContentProcessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.content_processors.</span></span><span class="sig-name descname"><span class="pre">ContentProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/content_processors.html#ContentProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.content_processors.ContentProcessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.abstract.Processor" title="routir.processors.abstract.Processor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Processor</span></code></a></p>
+<p>Processor for retrieving document content by ID.</p>
+<p>Provides fast random access to documents in JSONL files using offset maps.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.processors.content_processors.ContentProcessor.config">
+<span class="sig-name descname"><span class="pre">config</span></span><a class="headerlink" href="#routir.processors.content_processors.ContentProcessor.config" title="Link to this definition"></a></dt>
+<dd><p>Collection configuration</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.processors.content_processors.ContentProcessor.line_reader">
+<span class="sig-name descname"><span class="pre">line_reader</span></span><a class="headerlink" href="#routir.processors.content_processors.ContentProcessor.line_reader" title="Link to this definition"></a></dt>
+<dd><p>Random access reader for document file</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.processors.content_processors.ContentProcessor.content_field">
+<span class="sig-name descname"><span class="pre">content_field</span></span><a class="headerlink" href="#routir.processors.content_processors.ContentProcessor.content_field" title="Link to this definition"></a></dt>
+<dd><p>Field(s) containing document text</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="routir.processors.content_processors.ContentProcessor.lang_mapping">
+<span class="sig-name descname"><span class="pre">lang_mapping</span></span><a class="headerlink" href="#routir.processors.content_processors.ContentProcessor.lang_mapping" title="Link to this definition"></a></dt>
+<dd><p>Optional mapping of document IDs to language codes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.content_processors.ContentProcessor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/content_processors.html#ContentProcessor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.content_processors.ContentProcessor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize content processor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>collection_config</strong> (<a class="reference internal" href="config.html#routir.config.config.ColllectionConfig" title="routir.config.config.ColllectionConfig"><em>ColllectionConfig</em></a>) – Collection configuration with doc_path, id_field, etc.</p></li>
+<li><p><strong>cache_size</strong> – Maximum cache entries</p></li>
+<li><p><strong>cache_ttl</strong> – Cache TTL in seconds</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-routir.processors.score_processors">
+<span id="score-processors"></span><h2>Score Processors<a class="headerlink" href="#module-routir.processors.score_processors" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.score_processors.AsyncPairwiseScoreProcessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.score_processors.</span></span><span class="sig-name descname"><span class="pre">AsyncPairwiseScoreProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/score_processors.html#AsyncPairwiseScoreProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.score_processors.AsyncPairwiseScoreProcessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.abstract.Processor" title="routir.processors.abstract.Processor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Processor</span></code></a></p>
+<p>Processor that serve every request independently through async calls.
+Should be used when all the engine does is issuing async calls</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.score_processors.AsyncPairwiseScoreProcessor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/score_processors.html#AsyncPairwiseScoreProcessor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.score_processors.AsyncPairwiseScoreProcessor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize processor with caching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cache_size</strong> – Maximum cache entries (-1 to disable)</p></li>
+<li><p><strong>cache_ttl</strong> – Cache entry time-to-live in seconds</p></li>
+<li><p><strong>cache_key</strong> – Function to generate cache keys from requests</p></li>
+<li><p><strong>redis_url</strong> – Optional Redis URL for distributed caching</p></li>
+<li><p><strong>redis_kwargs</strong> – Additional Redis configuration</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.score_processors.BatchPairwiseScoreProcessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.score_processors.</span></span><span class="sig-name descname"><span class="pre">BatchPairwiseScoreProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/score_processors.html#BatchPairwiseScoreProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.score_processors.BatchPairwiseScoreProcessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.abstract.BatchProcessor" title="routir.processors.abstract.BatchProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">BatchProcessor</span></code></a></p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.score_processors.BatchPairwiseScoreProcessor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/score_processors.html#BatchPairwiseScoreProcessor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.score_processors.BatchPairwiseScoreProcessor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Simple dynamic batch processor for batching similar requests.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_size</strong> – Maximum number of items in a batch</p></li>
+<li><p><strong>max_wait_time</strong> – Maximum time to wait before processing a partial batch</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-routir.processors.cache">
+<span id="cache"></span><h2>Cache<a class="headerlink" href="#module-routir.processors.cache" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.cache.</span></span><span class="sig-name descname"><span class="pre">Cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Abstract base class for cache implementations.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>capacity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum number of items to store (-1 for unlimited)</p></li>
+<li><p><strong>ttl</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Time-to-live in seconds for cache entries (-1 for no expiry)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.get">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.get" title="Link to this definition"></a></dt>
+<dd><p>Get an item from the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The cache key</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The cached value or None if not found or expired</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.put">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.put"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.put" title="Link to this definition"></a></dt>
+<dd><p>Add an item to the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The cache key</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>) – The value to cache</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.remove">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.remove" title="Link to this definition"></a></dt>
+<dd><p>Remove an item from the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The cache key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.clear">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.clear" title="Link to this definition"></a></dt>
+<dd><p>Clear all items from the cache.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.__len__">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.__len__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.__len__" title="Link to this definition"></a></dt>
+<dd><p>Return the number of items in the cache.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.connect">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.connect" title="Link to this definition"></a></dt>
+<dd><p>Connect to cache backend (if needed). Override in subclasses.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.close">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.close" title="Link to this definition"></a></dt>
+<dd><p>Close cache connection (if needed). Override in subclasses.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.__aenter__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__aenter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.__aenter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.__aenter__" title="Link to this definition"></a></dt>
+<dd><p>Async context manager entry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.Cache.__aexit__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__aexit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_tb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#Cache.__aexit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.Cache.__aexit__" title="Link to this definition"></a></dt>
+<dd><p>Async context manager exit.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.cache.LRUCache">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.cache.</span></span><span class="sig-name descname"><span class="pre">LRUCache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#LRUCache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.LRUCache" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.cache.Cache" title="routir.processors.cache.Cache"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cache</span></code></a></p>
+<p>An async LRU cache implementation.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.LRUCache.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#LRUCache.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.LRUCache.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize LRU cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>capacity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum number of items to store (-1 for unlimited)</p></li>
+<li><p><strong>ttl</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Time-to-live in seconds for cache entries (-1 for no expiry)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.LRUCache.get">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#LRUCache.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.LRUCache.get" title="Link to this definition"></a></dt>
+<dd><p>Get an item from the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The cache key</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The cached value or None if not found or expired</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.LRUCache.put">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#LRUCache.put"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.LRUCache.put" title="Link to this definition"></a></dt>
+<dd><p>Add an item to the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The cache key</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>) – The value to cache</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.LRUCache.remove">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#LRUCache.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.LRUCache.remove" title="Link to this definition"></a></dt>
+<dd><p>Remove an item from the cache.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.LRUCache.clear">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#LRUCache.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.LRUCache.clear" title="Link to this definition"></a></dt>
+<dd><p>Clear the cache.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.LRUCache.__len__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#LRUCache.__len__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.LRUCache.__len__" title="Link to this definition"></a></dt>
+<dd><p>Return the number of items in the cache.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.cache.</span></span><span class="sig-name descname"><span class="pre">RedisCache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'redis://localhost:6379'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'routircache:'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">redis_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.cache.Cache" title="routir.processors.cache.Cache"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cache</span></code></a></p>
+<p>A Redis-based cache implementation with async support.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'redis://localhost:6379'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'routircache:'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">redis_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize Redis cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>capacity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum number of items to store (-1 for unlimited, not enforced by Redis)</p></li>
+<li><p><strong>ttl</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Time-to-live in seconds for cache entries (-1 for no expiry)</p></li>
+<li><p><strong>redis_url</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Redis connection URL</p></li>
+<li><p><strong>key_prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Prefix for all cache keys to avoid collisions</p></li>
+<li><p><strong>**redis_kwargs</strong> – Additional arguments to pass to Redis client</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache.connect">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache.connect" title="Link to this definition"></a></dt>
+<dd><p>Establish connection to Redis.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache.close">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache.close" title="Link to this definition"></a></dt>
+<dd><p>Close Redis connection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache.get">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache.get" title="Link to this definition"></a></dt>
+<dd><p>Get an item from the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The cache key</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The cached value or None if not found or expired</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache.put">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache.put"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache.put" title="Link to this definition"></a></dt>
+<dd><p>Add an item to the cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The cache key</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>) – The value to cache</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache.remove">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache.remove" title="Link to this definition"></a></dt>
+<dd><p>Remove an item from the cache.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache.clear">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache.clear" title="Link to this definition"></a></dt>
+<dd><p>Clear all cache entries with the current prefix.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.cache.RedisCache.__len__">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/cache.html#RedisCache.__len__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.cache.RedisCache.__len__" title="Link to this definition"></a></dt>
+<dd><p>Return the number of items in the cache with the current prefix.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="file-random-access-reader">
+<h2>File Random Access Reader<a class="headerlink" href="#file-random-access-reader" title="Link to this heading"></a></h2>
+</section>
+<section id="module-routir.processors.registry">
+<span id="registry"></span><h2>Registry<a class="headerlink" href="#module-routir.processors.registry" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="routir.processors.registry.DummyProcessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">routir.processors.registry.</span></span><span class="sig-name descname"><span class="pre">DummyProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/registry.html#DummyProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.registry.DummyProcessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#routir.processors.abstract.Processor" title="routir.processors.abstract.Processor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Processor</span></code></a></p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.registry.DummyProcessor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/registry.html#DummyProcessor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.registry.DummyProcessor.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize processor with caching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cache_size</strong> – Maximum cache entries (-1 to disable)</p></li>
+<li><p><strong>cache_ttl</strong> – Cache entry time-to-live in seconds</p></li>
+<li><p><strong>cache_key</strong> – Function to generate cache keys from requests</p></li>
+<li><p><strong>redis_url</strong> – Optional Redis URL for distributed caching</p></li>
+<li><p><strong>redis_kwargs</strong> – Additional Redis configuration</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="routir.processors.registry.DummyProcessor.submit">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/registry.html#DummyProcessor.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.registry.DummyProcessor.submit" title="Link to this definition"></a></dt>
+<dd><p>Submit a request for processing with caching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>item</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>]</em>) – Request data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Response dict with ‘cached’ field indicating cache hit/miss</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.14)"><em>Dict</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="routir.processors.registry.auto_register">
+<span class="sig-prename descclassname"><span class="pre">routir.processors.registry.</span></span><span class="sig-name descname"><span class="pre">auto_register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methods</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">default_init_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/routir/processors/registry.html#auto_register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#routir.processors.registry.auto_register" title="Link to this definition"></a></dt>
+<dd><p>Decorator to auto-register engines as processors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>methods</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – Service type(s) to register (‘search’, ‘score’, ‘fuse’, etc.)</p></li>
+<li><p><strong>**default_init_kwargs</strong> – Default initialization kwargs for the engine</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Decorator function</p>
+</dd>
+</dl>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>&#64;auto_register(“fuse”)
+class MyFusionEngine(Engine):</p>
+<blockquote>
+<div><p>…</p>
+</div></blockquote>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pipeline.html" class="btn btn-neutral float-right" title="Pipeline" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Routir Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
