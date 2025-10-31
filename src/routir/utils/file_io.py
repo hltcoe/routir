@@ -111,11 +111,18 @@ class OffsetFile(RandomAccessReader):
         self.fread.seek(self.pointer_dict[idx])
         return self.fread.readline()
 
+    def __iter__(self):
+        with self.path.open("rt") as fr: # make sure it keeps its own fp
+            yield from fr
+
     def __contains__(self, idx: str):
         return idx in self.pointer_dict
 
     def __len__(self):
         return len(self.pointer_dict)
+
+    def __del__(self):
+        self.fread.close()
 
 
 class MSMARCOSegOffset(RandomAccessReader):
