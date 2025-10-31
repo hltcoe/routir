@@ -3,8 +3,8 @@ from typing import Any, Dict
 
 from ..config import ColllectionConfig
 from ..utils import load_singleton
+from ..utils.file_io import MSMARCOSegOffset, OffsetFile, RandomAccessReader
 from .abstract import Processor
-from .file_random_access_reader import MSMARCOSegOffset, OffsetFile, RandomAccessReader
 
 
 class ContentProcessor(Processor):
