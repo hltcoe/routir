@@ -12,7 +12,7 @@ from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 from trecrun import TRECRun
 
-from ..utils import dict_topk, load_singleton, logger
+from ..utils import dict_topk, load_singleton, logger, _cumsum
 from .abstract import Engine
 
 
@@ -90,6 +90,14 @@ class Qwen3(Engine):
             return scores
         return {doc_id: score for doc_id, score in scores.items() if self.subset_mapper[doc_id] == only_subset}
 
+    async def encode_text(self, text: list[str]) -> np.ndarray:
+        if self.local_embedding_model:
+            _, embeddings = self.local_embedding_model.encode(list(enumerate(text)))
+        else:
+            embeddings = await self.client.embeddings.create(model=self.embedding_model_name, input=text)
+            embeddings = np.array([x.embedding for x in embeddings.data])
+
+        return embeddings
     async def search_batch(
         self, queries: List[str], limit: Union[int, List[int]] = 20, subsets: List[str] = None, maxp: bool = True
     ) -> List[Dict[str, float]]:
@@ -99,12 +107,7 @@ class Qwen3(Engine):
         if subsets is None:
             subsets = [None] * len(queries)
 
-        queries = self.add_query_instructions(queries)
-        if self.local_embedding_model:
-            _, query_embeddings = self.local_embedding_model.encode(list(enumerate(queries)))
-        else:
-            query_embeddings = await self.client.embeddings.create(model=self.embedding_model_name, input=queries)
-            query_embeddings = np.array([x.embedding for x in query_embeddings.data])
+        query_embeddings = await self.encode_text(self.add_query_instructions(queries))
 
         scores, ids = self.index.search(x=query_embeddings, k=int(max(limit) * self.config.get("k_scale", 20)))
 
@@ -118,9 +121,22 @@ class Qwen3(Engine):
         task_description = "Given a web search query, retrieve relevant passages that answer the query"
         return [f"Instruct: {task_description}\nQuery:{query}" for query in queries]
 
+    async def score_batch(self, queries: List[str], passages: List[str], candidate_length: List[int]) -> List[List[float]]:
+        assert len(candidate_length) == len(queries)
+        assert sum(candidate_length) == len(passages)
+        offsets = _cumsum([0] + candidate_length)
+
+        query_embeddings = await self.encode_text(self.add_query_instructions(queries))
+        passage_embeddings = await self.encode_text(passages)
+
+        return [
+            (query_embeddings[i] @ passage_embeddings[bidx:eidx].T).ravel().tolist()
+            for i, (bidx, eidx) in enumerate(zip(offsets[:-1], offsets[1:]))
+        ]
+
 
 class Qwen3EmbeddingModel:
-    def __init__(self, model_name="Qwen/Qwen3-Embedding-0.6B", max_length=8192, batch_size=8, instruction=None):
+    def __init__(self, model_name="Qwen/Qwen3-Embedding-0.6B", max_length=8192, batch_size=8, instruction=None, device=torch.device("cuda")):
         self.model_name = model_name
         self.max_length = max_length
         self.batch_size = batch_size
@@ -134,15 +150,16 @@ class Qwen3EmbeddingModel:
             return_tensors="pt",
         )
 
+        self.device = device
+
         try:
             self.model = AutoModel.from_pretrained(
                 self.model_name, attn_implementation="flash_attention_2", torch_dtype=torch.float16
-            ).cuda()
+            ).to(device=self.device)
         except ImportError:
             logger.warning("Failed to import flash_attn for Qwen3... loading model without flash_attention_2")
-            self.model = AutoModel.from_pretrained(self.model_name, torch_dtype=torch.float16).cuda()
+            self.model = AutoModel.from_pretrained(self.model_name, torch_dtype=torch.float16).to(device=self.device)
 
-        self.device = self.model.device
         self.model.eval()
 
     def last_token_pool(self, last_hidden_states: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
@@ -160,7 +177,7 @@ class Qwen3EmbeddingModel:
         embeddings = F.normalize(embeddings, p=2, dim=1)
         return embeddings
 
-    def encode(self, data):
+    def encode(self, data, disable_tqdm: bool = False):
         ids = []
         encoded = []
 
@@ -170,6 +187,8 @@ class Qwen3EmbeddingModel:
                 range(0, len(data), self.batch_size),
                 desc="qwen3.encode",
                 leave=True,
+                disable=disable_tqdm,
+                dynamic_ncols=True
             ):
                 id_batch, text_batch = zip(*list(itertools.islice(data_iter, self.batch_size)))
                 assert text_batch
@@ -180,4 +199,4 @@ class Qwen3EmbeddingModel:
                 encoded.append(embeddings.cpu())
 
         stacked_embeddings = torch.vstack(encoded)
-        return ids, stacked_embeddings
+        return ids, stacked_embeddings.numpy()
