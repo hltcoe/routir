@@ -7,6 +7,7 @@ resource/*
 indexes/*
 *.json
 torch_extensions*/*
+docs/build/*
 
 # Python cache files
 __pycache__/
