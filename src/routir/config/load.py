@@ -92,7 +92,14 @@ async def load_config(config: str):
     load_all_extensions(user_specified_files=config.file_imports)
 
     for collection_config in config.collections:
-        ProcessorRegistry.register(collection_config.name, "content", ContentProcessor(collection_config))
+        ProcessorRegistry.register(
+            collection_config.name,
+            "content",
+            Processor.load(
+                collection_config.processor,
+                collection_config=collection_config
+            )
+        )
     logger.info("All collections are loaded")
 
     for service_config in config.services:

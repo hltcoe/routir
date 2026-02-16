@@ -55,12 +55,14 @@ class ColllectionConfig(BaseModel):
     """
 
     name: str
-    doc_path: str
+    doc_path: Optional[str] = None
+    processor: str = "ContentProcessor"
     offset_source: Literal["msmarco_seg", "offsetfile"] = "offsetfile"
     id_field: str = "id"
     content_field: Union[str, List[str]] = "text"
     id_to_lang_mapping: Optional[str] = None
     cache_path: Optional[str] = None
+    force_load_all_documents: bool = False
 
     def model_post_init(self, __context):
         """Ensure content_field is always a list."""

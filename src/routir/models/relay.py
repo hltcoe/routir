@@ -32,13 +32,14 @@ class Relay(Engine):
 
         assert "service" in self.config
 
+        self.timeout = aiohttp.ClientTimeout(total=self.config.get("timeout", 600))
         self.other_kwargs = self.config.get("other_request_kwargs", {})
         # TODO: should support some runtime config like retry and timeout
         # TODO: support list of endpoints for load balancing
 
     async def _submit_payload(self, service_type, payloads: List[Dict[str, Any]]):
         if "endpoint" in self.config:
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
                 resps = await asyncio.gather(
                     *[session_request(session, f"{self.config['endpoint']}/{service_type}", load) for load in payloads]
                 )

@@ -140,6 +140,8 @@ def main():
     # app.run(host=args.host, port=args.port, use_reloader=False)
     hypercorn_config = Config()
     hypercorn_config.bind = [f"{args.host}:{args.port}"]
+    hypercorn_config.startup_timeout = 600
+    # hypercorn_config.keep_alive_timeout = 600
     asyncio.run(serve(app, hypercorn_config))
 
 

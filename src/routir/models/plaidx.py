@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
-from ..utils import dict_topk, load_singleton, logger, pbar
+from ..utils import dict_topk, load_singleton, logger, pbar, _cumsum
 from .abstract import Aggregation, Engine
 
 
@@ -15,7 +15,7 @@ try:
 except ImportError:
     logger.warning("Failed to import packages for PLAID-X")
 
-_plaidx_checkpoint_singletons: Dict[str, Tuple["Checkpoint", int]] = {}
+_plaidx_checkpoint_singletons: Dict[Union[str, Path], Tuple["Checkpoint", int]] = {}
 
 
 def colbert_all_pair_scores(Q: "torch.Tensor", D: "torch.Tensor", Dm: "torch.Tensor" = None):
@@ -39,10 +39,6 @@ def _load_mapping(fn, containing_passage_id=True):
         return ["_".join(line.strip().split("\t")[1].split("_")[:-1]) for line in pbar(open(fn))]
     else:
         return [line.strip().split("\t")[1] for line in pbar(open(fn))]
-
-
-def _cumsum(arr):
-    return [sum(arr[: i + 1]) for i in range(len(arr))]
 
 
 class PLAIDX(Engine):

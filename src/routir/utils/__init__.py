@@ -17,7 +17,7 @@ from .lazy_import import _lazy_modules
 
 
 logging.basicConfig(
-    format="[%(asctime)s][%(levelname)s][%(name)s] %(message)s",
+    format="[%(asctime)s][%(levelname)s][%(name)s:%(filename)s:%(lineno)d] %(message)s",
     datefmt="%m/%d/%Y %H:%M:%S",
     level=logging.INFO,
 )
@@ -104,6 +104,8 @@ async def session_request(session: aiohttp.ClientSession, url: str, payload: Dic
     except Exception as e:
         logger.warning(f"HTTP request to {url} failed: {e}")
 
+def _cumsum(arr):
+    return [sum(arr[: i + 1]) for i in range(len(arr))]
 
 def _recursive_subclasses(cls: type):
     """

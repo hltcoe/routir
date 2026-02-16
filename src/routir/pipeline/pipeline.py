@@ -2,7 +2,7 @@ import asyncio
 from typing import Any, Dict, List
 
 from ..processors.registry import ProcessorRegistry
-from ..utils import dict_topk
+from ..utils import dict_topk, logger
 from .parser import CallSequence, ParallelCallSequences, PipelineComponent, SystemCall, parser
 
 
@@ -92,10 +92,10 @@ class SearchPipeline:
     async def run(
         self,
         query: str,
-        last_output: Dict[str, Any] = None,
+        last_output: Any = None,
         current_node: PipelineComponent = None,
-        scratch: Dict[str, Dict[str, Any]] = None,
-    ) -> List[Dict[str, float]]:
+        scratch: Dict[tuple, Dict[str, Any]] = None,
+    ) -> Dict[str, float]:
         """
         Recursively execute the pipeline for a query.
 
@@ -149,7 +149,8 @@ class SearchPipeline:
 
         if current_node.role == "rerank":
             docid_to_rerank: List[str] = list(last_output["scores"].keys())
-            doc_text_list = await asyncio.gather(*[self.get_doc_content(d) for d in docid_to_rerank])
+            logger.info(f"Gathering doc content for {len(docid_to_rerank)} documents")
+            doc_text_list = await asyncio.gather(*[self.get_doc_content(d) for d in sorted(docid_to_rerank)])
             payload["passages"] = doc_text_list
             ret = await processor.submit(payload)
             assert "scores" in ret and isinstance(ret["scores"], list)
