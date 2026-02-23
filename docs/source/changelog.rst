@@ -3,11 +3,10 @@ Changelog
 
 All notable changes to this project will be documented here.
 
-Version 0.0.1b9
----------------
+Version 0.0.2
+-------------
 
-- Download index from HFDS support
-- Bug fixes and improvements
+- Support for arbitrary sentence-transformers models using SentenceTransformerEngine
 
 Version 0.0.1
 -------------
@@ -21,3 +20,10 @@ Version 0.0.1
 - REST API for search and scoring
 - Pipeline system for multi-stage search
 - PyTerrier and Pyserini integration examples
+
+Version 0.0.1b9
+---------------
+
+- Download index from HFDS support
+- Bug fixes and improvements
+
