@@ -1,0 +1,20 @@
+{
+    "services": [
+        {
+            "name": "me5-instruct",
+            "engine": "SentenceTransformerEngine",
+            "cache": 1024,
+            "cache_ttl": 1024000,
+            "batch_size": 32,
+            "max_wait_time": 0.05,
+            "config": {
+                "index_path": "/path/to/me5-instruct-faiss-index",
+                "embedding_model_name": "intfloat/multilingual-e5-large-instruct",
+                "batch_size": 32,
+                "normalize_embeddings": true,
+                "instruction": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: {query}",
+                "k_scale": 20
+            }
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "services": [
+        {
+            "name": "gemma-300m",
+            "engine": "SentenceTransformerEngine",
+            "cache": 1024,
+            "cache_ttl": 1024000,
+            "batch_size": 32,
+            "max_wait_time": 0.05,
+            "config": {
+                "index_path": "/path/to/gemma-300m-faiss-index",
+                "embedding_model_name": "google/embeddinggemma-300m",
+                "batch_size": 32,
+                "encode_based_on_type": true,
+                "k_scale": 20
+            }
+        }
+    ]
+}
