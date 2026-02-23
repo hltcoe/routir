@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
-from ..utils import dict_topk, load_singleton, logger, pbar
+from ..utils import cumsum, dict_topk, load_singleton, logger, pbar
 from .abstract import Aggregation, Engine
 
 
@@ -40,9 +40,6 @@ def _load_mapping(fn, containing_passage_id=True):
     else:
         return [line.strip().split("\t")[1] for line in pbar(open(fn))]
 
-
-def _cumsum(arr):
-    return [sum(arr[: i + 1]) for i in range(len(arr))]
 
 
 class PLAIDX(Engine):
@@ -194,7 +191,7 @@ class PLAIDX(Engine):
     async def score_batch(self, queries: List[str], passages: List[str], candidate_length: List[int]) -> List[List[float]]:
         assert len(candidate_length) == len(queries)
         assert sum(candidate_length) == len(passages)
-        offsets = _cumsum([0] + candidate_length)
+        offsets = cumsum([0] + candidate_length)
 
         import torch
 

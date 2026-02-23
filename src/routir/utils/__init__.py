@@ -68,6 +68,10 @@ def load_singleton(fn, load_fn=None):
     return _file_singleton[fn]
 
 
+def cumsum(arr):
+    return [sum(arr[: i + 1]) for i in range(len(arr))]
+
+
 def dict_topk(scores: Dict[Any, float], k: int) -> Dict[Any, float]:
     """
     Get top-k entries from a score dictionary.
