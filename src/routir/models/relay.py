@@ -1,10 +1,11 @@
 import asyncio
+import time
 from typing import Any, Dict, List
 
 import aiohttp
 
 from ..processors.registry import ProcessorRegistry
-from ..utils import session_request
+from ..utils import logger, session_request
 from .abstract import Engine
 
 
@@ -33,6 +34,7 @@ class Relay(Engine):
         assert "service" in self.config
 
         self.timeout = aiohttp.ClientTimeout(total=self.config.get("timeout", 600))
+        self.retries = self.config.get("retries", 10)
         self.other_kwargs = self.config.get("other_request_kwargs", {})
         # TODO: should support some runtime config like retry and timeout
         # TODO: support list of endpoints for load balancing
@@ -40,9 +42,16 @@ class Relay(Engine):
     async def _submit_payload(self, service_type, payloads: List[Dict[str, Any]]):
         if "endpoint" in self.config:
             async with aiohttp.ClientSession(timeout=self.timeout) as session:
-                resps = await asyncio.gather(
-                    *[session_request(session, f"{self.config['endpoint']}/{service_type}", load) for load in payloads]
-                )
+                for iretry in range(self.retries):
+                    resps = await asyncio.gather(
+                        *[session_request(session, f"{self.config['endpoint']}/{service_type}", load) for load in payloads]
+                    )
+                    if all(r is not None for r in resps):
+                        break
+                    logger.warning(f"Retrying ({iretry+1}) {self.config['endpoint']}/{service_type}")
+                    time.sleep(0.01)
+                else:
+                    raise RuntimeError(f"Error submitting batch to {self.config['endpoint']}/{service_type} after {self.retries} retries")
         else:
             assert ProcessorRegistry.has_service(self.config["service"], service_type)
             local_processor = ProcessorRegistry.get(self.config["service"], service_type)

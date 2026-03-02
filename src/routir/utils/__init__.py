@@ -128,6 +128,9 @@ class FactoryEnabled(ABC):
 
     Allows loading subclasses by their name string.
     """
+    # TODO: use `__init_subclass__` to allow alternative names at registration
+    # and also prevent name conflict
+    # might need to have a flag for defining top level entry
 
     @classmethod
     def load(cls, cls_name: str, **kwargs):

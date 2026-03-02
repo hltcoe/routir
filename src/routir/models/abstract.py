@@ -81,7 +81,7 @@ class Engine(FactoryEnabled):
 
     async def score(self, query: str, passages: List[str], **kwargs) -> List[float]:
         """Score a single query against multiple passages."""
-        raise (await self.score_batch([query], passages, [len(passages)]))[0]
+        return (await self.score_batch([query], passages, [len(passages)]))[0]
 
     async def decompose_query_batch(self, queries: List[str], limit: List[int] = None, **kwargs) -> List[List[str]]:
         """
