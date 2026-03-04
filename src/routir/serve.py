@@ -28,7 +28,34 @@ async def startup():
 @app.route("/search", methods=["POST"])
 @app.route("/query", methods=["POST"])  # deprecated
 async def process_query():
-    """API endpoint for processing requests."""
+    """Retrieve ranked documents for a query.
+
+    **Request** (JSON):
+
+    .. code-block:: json
+
+        {
+            "service": "my-retriever",
+            "query":   "what is machine learning?",
+            "limit":   20
+        }
+
+    ``service`` (required) selects the registered search service.  All other
+    fields are forwarded to the processor as-is; common extra fields include
+    ``limit`` and ``subset``.
+
+    **Response** (200 OK):
+
+    .. code-block:: json
+
+        {
+            "scores":    {"doc1": 12.3, "doc2": 9.8},
+            "cached":    false,
+            "timestamp": 1700000000.0
+        }
+
+    Returns 400 for missing data or unknown service; 500 for engine errors.
+    """
 
     try:
         data = await request.get_json()
@@ -49,7 +76,34 @@ async def process_query():
 
 @app.route("/score", methods=["POST"])
 async def process_scoring():
-    """API endpoint for processing requests."""
+    """Score query-passage pairs (reranking).
+
+    **Request** (JSON):
+
+    .. code-block:: json
+
+        {
+            "service":  "my-reranker",
+            "query":    "what is machine learning?",
+            "passages": ["ML is a subset of AI", "Pizza is popular in Italy"]
+        }
+
+    ``passages`` is a flat list of text strings to score against the query.
+
+    **Response** (200 OK):
+
+    .. code-block:: json
+
+        {
+            "scores":    [0.95, 0.02],
+            "cached":    false,
+            "timestamp": 1700000000.0
+        }
+
+    ``scores`` is a list of floats in the same order as ``passages``.
+
+    Returns 400 for missing data or unknown service; 500 for engine errors.
+    """
 
     try:
         data = await request.get_json()
@@ -70,7 +124,30 @@ async def process_scoring():
 
 @app.route("/content", methods=["POST"])
 async def process_get_content():
-    """API endpoint for retrieving document content by ID."""
+    """Retrieve document text by ID from a registered collection.
+
+    **Request** (JSON):
+
+    .. code-block:: json
+
+        {
+            "collection": "my-corpus",
+            "id":         "doc_42"
+        }
+
+    **Response** (200 OK):
+
+    .. code-block:: json
+
+        {
+            "collection": "my-corpus",
+            "id":         "doc_42",
+            "text":       "Full document text here…"
+        }
+
+    Returns 400 for missing ``id``, unknown collection, or lookup failure;
+    500 for unexpected errors.
+    """
     try:
         data = await request.get_json()
         if not data or "id" not in data:
@@ -89,7 +166,43 @@ async def process_get_content():
 
 @app.route("/pipeline", methods=["POST"])
 async def process_pipeline():
-    """API endpoint for executing custom search pipelines."""
+    """Execute a multi-stage pipeline defined by the pipeline DSL.
+
+    **Request** (JSON):
+
+    .. code-block:: json
+
+        {
+            "pipeline":       "bm25%100 >> my-reranker%20",
+            "collection":     "my-corpus",
+            "query":          "what is machine learning?",
+            "runtime_kwargs": {"bm25": {"subset": "en"}}
+        }
+
+    Required fields: ``pipeline``, ``collection``, ``query``.
+
+    ``pipeline`` is a DSL string; see :mod:`routir.pipeline.parser` for
+    syntax.  ``collection`` must be a registered content service (needed for
+    reranking stages).  ``runtime_kwargs`` is optional and maps pipeline
+    aliases to extra per-stage parameters.
+
+    **Response** (200 OK) — same fields as ``/search`` plus the echoed
+    request fields:
+
+    .. code-block:: json
+
+        {
+            "pipeline":   "bm25%100 >> my-reranker%20",
+            "collection": "my-corpus",
+            "query":      "what is machine learning?",
+            "scores":     {"doc1": 0.95, "doc2": 0.82},
+            "cached":     false,
+            "timestamp":  1700000000.0
+        }
+
+    Returns 400 for missing required fields or DSL/service errors; 500 for
+    unexpected errors.
+    """
     try:
         data = await request.get_json()
         if not data:
@@ -116,15 +229,41 @@ async def health_check():
 
 @app.route("/avail", methods=["GET"])
 async def get_avail_service():
-    """API endpoint for listing available services."""
+    """List all services registered with the server, grouped by type.
+
+    **Response** (200 OK):
+
+    .. code-block:: json
+
+        {
+            "search":         ["bm25", "dense"],
+            "score":          ["cross-encoder"],
+            "fuse":           ["rrf"],
+            "decompose_query":[],
+            "content":        ["my-corpus"]
+        }
+
+    Used by :func:`~routir.config.load.auto_add_relay_services` to discover
+    services on remote servers.
+    """
     return jsonify(ProcessorRegistry.get_all_services())
 
 
 def main():
     """
-    Main entry point for the search service server.
+    CLI entry point: parse arguments and start the Hypercorn ASGI server.
 
-    Parses command line arguments and starts the Hypercorn server.
+    Usage::
+
+        routir config.json [--port 5000] [--host 0.0.0.0]
+
+    The startup timeout is 600 s to accommodate slow model loading.
+
+    Args (CLI):
+        config: Path to the JSON config file (required positional argument).
+        --port: TCP port to listen on (default 5000).
+        --host: Interface to bind (default ``0.0.0.0`` for all interfaces).
+        --cache_dir: Directory for local cache files (default ``./.cache``).
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str)

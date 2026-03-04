@@ -1,3 +1,38 @@
+"""Pipeline DSL parser for RoutIR search pipelines.
+
+The pipeline DSL composes retrieval and reranking services into multi-stage,
+parallel, or query-expansion pipelines using a concise string syntax.
+
+**Syntax reference**::
+
+    # Single service — retrieve top 20
+    "bm25%20"
+
+    # Sequential — retrieve 100, rerank to top 20
+    "bm25%100 >> cross-encoder%20"
+
+    # Parallel retrieval + fusion — dense and sparse run concurrently, fused by RRF
+    "{dense, sparse}RRF%100"
+
+    # Query expansion — expander generates sub-queries, each runs the parallel branches
+    "expander{dense, sparse}RRF%100"
+
+    # Alias — name a stage so runtime_kwargs can target it by alias
+    "dense[d]%100 >> cross-encoder%20"
+
+**Grammar operators**:
+
+* ``service%N`` — call *service*, keep top *N* results.
+* ``service[alias]`` — give this call the name *alias* for ``runtime_kwargs`` targeting.
+* ``A >> B`` — sequential: run A, pass output to B (B auto-assigned role ``"rerank"``).
+* ``{A, B}Merger`` — parallel: run A and B concurrently, fuse with Merger.
+* ``Expander{A, B}Merger`` — query expansion: Expander produces sub-queries, each
+  dispatched to A and B, all results fused by Merger.
+
+The module-level :data:`parser` singleton parses DSL strings into
+:class:`PipelineComponent` AST nodes consumed by :class:`~routir.pipeline.SearchPipeline`.
+"""
+
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
@@ -7,17 +42,18 @@ from lark import Lark, Transformer
 PIPELINE_GRAMMAR = r"""
     ?start: seq
 
-    seq: stage (">>" stage)*
+    seq: stage (">>" stage)*              // sequential chain: A >> B >> C
 
     stage: (parallel_seq | system_call)
 
-    system_call: NAME alias? ("%" NUMBER)?
+    system_call: NAME alias? ("%" NUMBER)?  // service[alias]%limit
 
-    alias: ("[" NAME "]")
+    alias: ("[" NAME "]")                   // [my-alias]
 
-    seq_list: seq ("," seq)*
+    seq_list: seq ("," seq)*                // comma-separated parallel branches
 
-    parallel_seq: system_call? "{" seq_list "}" system_call 
+    parallel_seq: system_call? "{" seq_list "}" system_call
+                  // [expander]{branch1, branch2}merger
 
     NAME: /[A-Za-z][A-Za-z0-9_\-]*/
     NUMBER: /[0-9]+/
@@ -32,6 +68,23 @@ PIPELINE_GRAMMAR = r"""
 # Data classes to represent the AST nodes
 @dataclass
 class SystemCall:
+    """An AST node representing a single service call in the pipeline.
+
+    Attributes:
+        name (str): Service name as registered in ``ProcessorRegistry``.
+        alias (str): Label used to target this stage with ``runtime_kwargs``.
+            Defaults to ``name`` when not specified with the ``[alias]`` syntax.
+        limit (int or None): Maximum results to return (the ``%N`` suffix).
+            ``None`` means no explicit limit; the service uses its own default.
+        role (str): Role assigned during pipeline construction.  One of:
+
+            * ``"search"`` — first-stage retrieval; receives the raw query.
+            * ``"rerank"`` — later stage; receives previous results and document
+              text fetched from the collection.
+            * ``"expander"`` — generates sub-queries for parallel execution.
+            * ``"merger"`` — fuses multiple ranked lists into one final ranking.
+    """
+
     name: str
     alias: Optional[str] = None
     limit: Optional[int] = None
@@ -54,6 +107,19 @@ class SystemCall:
 
 @dataclass
 class CallSequence:
+    """An AST node for a sequential chain of pipeline stages (``A >> B >> C``).
+
+    During construction, all stages after the first are automatically assigned
+    role ``"rerank"``: they receive the previous stage's scored results together
+    with document text fetched from the collection and are expected to rescore them.
+
+    Attributes:
+        stages (list): Ordered list of :class:`SystemCall` or
+            :class:`ParallelCallSequences` nodes executed left-to-right.
+            ``stages[0]`` has role ``"search"``; all later stages have
+            role ``"rerank"``.
+    """
+
     stages: List[Union[SystemCall, "ParallelCallSequences"]]
 
     def __post_init__(self):
@@ -71,6 +137,25 @@ class CallSequence:
 
 @dataclass
 class ParallelCallSequences:
+    """An AST node for parallel retrieval with a merger (``{A, B}Merger``).
+
+    Runs multiple retrieval branches concurrently and fuses their results.
+    Optionally preceded by a query-expansion service (``E{A, B}Merger``).
+
+    Attributes:
+        sequences (list[CallSequence]): Independent retrieval pipelines run in
+            parallel; each is a :class:`CallSequence`.
+        merger (SystemCall): Service that fuses the parallel results.  Its role
+            is automatically set to ``"merger"``; it must implement
+            :meth:`~routir.models.abstract.Engine.fuse_batch`.
+        expander (SystemCall or None): Optional query-expansion service. When
+            present, its role is ``"expander"`` and it must implement
+            :meth:`~routir.models.abstract.Engine.decompose_query_batch`. The
+            expanded sub-queries are each dispatched to every sequence, and all
+            results are merged by ``merger``.  When ``None``, the original query
+            is sent directly to all sequences.
+    """
+
     sequences: List[CallSequence]
     merger: SystemCall
     expander: Optional[SystemCall] = None
@@ -101,10 +186,17 @@ class ParallelCallSequences:
 
 
 PipelineComponent = Union[SystemCall, CallSequence, ParallelCallSequences]
+"""Type alias for any top-level pipeline AST node."""
 
 
-# Transformer to convert parse tree to AST
 class PipelineTransformer(Transformer):
+    """Lark ``Transformer`` that converts a parse tree into RoutIR AST nodes.
+
+    Each method corresponds to a grammar rule and returns the appropriate
+    :class:`SystemCall`, :class:`CallSequence`, or
+    :class:`ParallelCallSequences` instance.  Used internally by the
+    :data:`parser` singleton; not normally called directly.
+    """
     def seq(self, stages):
         if len(stages) == 1:
             return stages[0].as_role("search")

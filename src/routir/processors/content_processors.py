@@ -1,7 +1,7 @@
 import json
 from typing import Any, Dict
 
-from ..config import ColllectionConfig
+from ..config import CollectionConfig
 from ..utils import load_singleton
 from ..utils.file_io import MSMARCOSegOffset, OffsetFile, RandomAccessReader
 from .abstract import Processor
@@ -20,7 +20,7 @@ class ContentProcessor(Processor):
         lang_mapping: Optional mapping of document IDs to language codes
     """
 
-    def __init__(self, collection_config: ColllectionConfig, cache_size=0, cache_ttl=600):
+    def __init__(self, collection_config: CollectionConfig, cache_size=0, cache_ttl=600):
         """
         Initialize content processor.
 
@@ -80,7 +80,7 @@ class IRDSProcessor(Processor):
     Inherits from ContentProcessor and uses IRDS-specific line reader.
     """
 
-    def __init__(self, collection_config: ColllectionConfig, cache_size=0, cache_ttl=600):
+    def __init__(self, collection_config: CollectionConfig, cache_size=0, cache_ttl=600):
         """
         Initialize content processor.
 

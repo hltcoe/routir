@@ -10,25 +10,51 @@ from .cache import Cache, LRUCache, RedisCache
 
 class Processor(FactoryEnabled):
     """
-    Base class for request processors with caching support.
+    Base class for request processors with optional caching.
 
-    Handles request submission with optional caching via LRU or Redis.
+    A ``Processor`` sits between the HTTP layer and an engine.  It handles
+    cache lookup/store and delegates to :meth:`_submit` for the actual work.
+
+    **When to subclass Processor vs BatchProcessor**
+
+    * Subclass :class:`Processor` when requests should be handled *one at a
+      time* — e.g. content lookup by document ID where batching adds no value.
+      Override :meth:`_submit` to implement the logic.
+
+    * Subclass :class:`BatchProcessor` when the underlying engine (e.g. a GPU
+      model) benefits from processing multiple requests together.  Override
+      :meth:`~BatchProcessor._process_batch` instead.
+
+    Both classes share the same caching interface; the cache is checked before
+    :meth:`_submit` / :meth:`~BatchProcessor._process_batch` is called.
 
     Attributes:
-        cache: Cache instance (LRU or Redis)
-        cache_key: Function to generate cache keys from requests
+        cache (Cache or None): Active cache instance (LRU or Redis), or ``None``
+            when caching is disabled.
+        cache_key (callable): Function ``(item: dict) -> hashable`` used to
+            derive the cache key from a request dict.  Default key includes
+            ``service``, ``query``, ``limit``, and ``subset``.
     """
 
     def __init__(self, cache_size=1024, cache_ttl=600, cache_key=None, redis_url: str = None, redis_kwargs: Dict[str, Any] = {}):
         """
-        Initialize processor with caching.
+        Initialize the processor with optional caching.
 
         Args:
-            cache_size: Maximum cache entries (-1 to disable)
-            cache_ttl: Cache entry time-to-live in seconds
-            cache_key: Function to generate cache keys from requests
-            redis_url: Optional Redis URL for distributed caching
-            redis_kwargs: Additional Redis configuration
+            cache_size (int): Maximum number of cached entries.  ``-1`` or
+                ``0`` disables caching entirely.  When ``redis_url`` is set,
+                this controls the Redis key-count budget (approximate).
+            cache_ttl (int): Cache entry time-to-live in seconds (default 600).
+            cache_key (callable, optional): ``(item: dict) -> hashable``
+                function to derive a cache key from a request dict.  The
+                default key is ``(service, query, limit, subset)``.  Override
+                when additional request fields affect the result (e.g. pass
+                ``cache_key_fields`` via a closure, as :func:`~routir.config.load.load_config`
+                does per service).
+            redis_url (str, optional): Redis connection URL.  When provided,
+                Redis is used instead of the in-memory LRU cache.
+            redis_kwargs (dict): Additional keyword arguments forwarded to the
+                Redis client.
         """
         self.cache: Cache = None
         if cache_size > 0 and redis_url is None:
@@ -80,13 +106,38 @@ class Processor(FactoryEnabled):
 
 
 class BatchProcessor(Processor):
+    """
+    Processor that accumulates requests into batches before engine inference.
+
+    Requests are queued in an :class:`asyncio.Queue` by :meth:`_submit`.  A
+    background worker collects items until either ``batch_size`` is reached or
+    ``max_wait_time`` seconds elapse, then calls :meth:`_process_batch` with
+    the whole batch.  This amortises GPU/model overhead across concurrent
+    requests, improving throughput at the cost of a small latency increase.
+
+    Subclasses must override :meth:`_process_batch`; all other machinery is
+    provided here.
+
+    The worker is started lazily on the first request (or explicitly via
+    :meth:`start`), and runs for the lifetime of the process.
+    """
+
     def __init__(self, batch_size=32, max_wait_time=0.1, cache_size=1024, cache_ttl=600, cache_key=None, **kwargs):
         """
-        Simple dynamic batch processor for batching similar requests.
+        Initialize the batch processor.
 
         Args:
-            batch_size: Maximum number of items in a batch
-            max_wait_time: Maximum time to wait before processing a partial batch
+            batch_size (int): Maximum number of requests accumulated into one
+                batch before the engine is called (default 32).
+            max_wait_time (float): Maximum seconds to wait for the batch to
+                fill before processing a partial batch (default 0.1 s).
+                Tune this to balance latency vs. GPU utilisation — lower values
+                reduce wait time, higher values pack more requests per batch.
+            cache_size (int): LRU cache size; ``-1`` disables caching.
+            cache_ttl (int): Cache TTL in seconds.
+            cache_key (callable, optional): Custom cache-key function; see
+                :class:`Processor` for details.
+            **kwargs: Forwarded to :class:`Processor.__init__`.
         """
         super().__init__(cache_size, cache_ttl, cache_key)
 
@@ -219,4 +270,19 @@ class BatchProcessor(Processor):
                 await asyncio.sleep(0.1)
 
     async def _process_batch(self, batch: List[Dict]) -> List[Dict]:
+        """Process a batch of requests and return one result dict per request.
+
+        Override this in subclasses to implement the actual engine call.
+        The result list must have the **same length** as ``batch`` and preserve
+        order so results can be mapped back to their waiting callers.
+
+        Args:
+            batch (list[dict]): List of request dicts accumulated from the
+                queue.  Each dict is whatever was passed to :meth:`_submit`.
+
+        Returns:
+            list[dict]: One result dict per input request, in the same order.
+                Each result dict is returned directly to the caller that
+                submitted the corresponding request.
+        """
         raise NotImplementedError

@@ -9,27 +9,61 @@ from . import logger, pbar
 
 
 class RandomAccessReader:
+    """Abstract base for O(1) document lookup by string ID.
+
+    Subclasses wrap different on-disk formats (plain JSONL, sharded gzip) and
+    expose a uniform ``reader[doc_id]`` interface that returns the raw JSON
+    line for a document.
+
+    Attributes:
+        path (Path): Root path of the document store (file or directory).
+    """
+
     def __init__(self, path: Path):
         self.path = Path(path)
 
     def __getitem__(self, idx: str) -> str:
+        """Return the raw JSON line for document *idx*."""
         raise NotImplementedError
 
     def __contains__(self, idx: str) -> bool:
+        """Return ``True`` if *idx* is present in this reader."""
         raise NotImplementedError
 
 
 class OffsetFile(RandomAccessReader):
+    """Fast random-access reader for JSONL document files using a byte-offset map.
+
+    On first access, scans the JSONL file and builds a ``{doc_id: byte_offset}``
+    mapping that is pickled to a ``.offsetmap`` sidecar file beside the corpus.
+    Subsequent startups load the sidecar directly (O(1) per document lookup).
+
+    Documents are retrieved by seeking to the stored byte offset and reading one
+    line — no need to load the entire corpus into memory.
+
+    Example::
+
+        reader = OffsetFile("/data/corpus.jsonl", id_field="docid")
+        line = reader["msmarco_v2_doc_00_123456"]  # raw JSON string
+        doc = json.loads(line)
+    """
+
     def __init__(self, path: Path, key: Callable = None, offset_fn: Path = None, id_field: str = "id"):
         """
-        Initialize OffsetFile.
+        Initialize OffsetFile and build or load the byte-offset map.
 
         Args:
-            fn: Path to the document file
-            key: Callable to extract key from line (legacy support)
-            offset_fn: Path to store the offset map
-            num_workers: Number of parallel workers
-            id_field: Field name to use as key (preferred over key function)
+            path (Path): Path to the JSONL corpus file.
+            key (callable, optional): Legacy ``(line: str) -> doc_id`` function.
+                Prefer ``id_field`` instead.  When both are provided, ``key``
+                takes precedence.
+            offset_fn (Path, optional): Path for the ``.offsetmap`` sidecar file.
+                Defaults to ``<path>.offsetmap`` in the same directory.  If the
+                file exists it is loaded directly; otherwise it is built by
+                scanning the corpus (one-time cost, may take minutes for large
+                files).
+            id_field (str): JSON field name used as the document ID when ``key``
+                is not provided (default ``"id"``).
         """
         super().__init__(path)
 
@@ -63,7 +97,12 @@ class OffsetFile(RandomAccessReader):
         return str(data[self.id_field]).strip()
 
     def create_offsetmap(self, fn: Path, offset_fn: Path, key: Callable[[str], str]):
-        """Fallback sequential implementation with optimizations."""
+        """Scan *fn* line-by-line and write a ``{doc_id: byte_offset}`` pickle to *offset_fn*.
+
+        This is called once at first startup and may take several minutes for
+        large corpora.  The resulting sidecar file is reused on subsequent
+        runs.  Raises if more than 10 consecutive lines fail to parse.
+        """
         mapping = {}
 
         # Use larger buffer size for reading
@@ -126,10 +165,49 @@ class OffsetFile(RandomAccessReader):
 
 
 class MSMARCOSegOffset(RandomAccessReader):
+    """Random-access reader for MSMARCO v2.1 sharded gzip document files.
+
+    The MSMARCO v2.1 segmented document corpus is stored as multiple gzip
+    shards.  Document IDs encode both the shard number and the byte offset
+    within that shard (e.g. ``msmarco_v2.1_doc_segmented_00_123456_0_789``),
+    enabling direct O(1) seeks without an external offset map.
+
+    Uses ``rapidgzip`` for parallel decompression when available, falling back
+    to the standard ``gzip`` module.  Open file handles per shard are cached
+    in ``cached_fps`` for the lifetime of the reader.
+
+    Example::
+
+        reader = MSMARCOSegOffset("/data/msmarco-v2.1-doc-segmented/")
+        line = reader["msmarco_v2.1_doc_segmented_00_123_0_456"]
+        doc = json.loads(line)
+    """
+
     def __init__(
         self, path: Path, num_workers: int = 32, filename_pattern="msmarco_v2.1_doc_segmented_{shard}.json.gz", id_parser=None,
         force_load_all: bool = False
     ):
+        """
+        Initialize the MSMARCO segmented document reader.
+
+        Args:
+            path (Path): Directory containing the sharded ``.json.gz`` files.
+            num_workers (int): Parallelism passed to ``rapidgzip`` for
+                decompression (default 32).  Ignored when falling back to
+                native ``gzip``.
+            filename_pattern (str): Glob/format pattern for shard filenames.
+                ``{shard}`` is replaced with the shard identifier extracted
+                from the document ID.
+            id_parser (callable, optional): ``(doc_id: str) -> (shard, offset)``
+                function.  Defaults to :meth:`_parse_idx`, which handles the
+                standard MSMARCO v2.1 ID format
+                ``msmarco_v2.1_doc_segmented_<shard>_<…>_<…>_<offset>``.
+                Override for custom ID formats.
+            force_load_all (bool): When ``True``, all documents across all
+                shards are loaded into memory at startup.  Trades startup time
+                and memory for maximum throughput.  Default ``False`` uses
+                on-demand seek-based access.
+        """
         super().__init__(path)
 
         try:
@@ -158,6 +236,18 @@ class MSMARCOSegOffset(RandomAccessReader):
                     self.loaded[json.loads(line)['docid']] = line
 
     def _parse_idx(self, idx: str):
+        """Parse a MSMARCO v2.1 segmented document ID into ``(shard, offset)``.
+
+        The standard ID format is::
+
+            msmarco_v2.1_doc_segmented_<shard>_<n>_<m>_<byte_offset>
+            # fields after split("_"): [0..2]=prefix  [3]=shard  [4..5]=indices  [6]=offset
+
+        Returns:
+            tuple: ``(shard_str, byte_offset_int)`` used to locate the document
+            in ``<path>/<filename_pattern.format(shard=shard_str)>`` at the
+            given byte offset.
+        """
         idx = idx.split("_")
         return idx[3], int(idx[5])
 

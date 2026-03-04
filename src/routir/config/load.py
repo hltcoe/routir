@@ -20,10 +20,21 @@ from .config import Config
 
 async def auto_add_relay_services(servers: List[str]):
     """
-    Automatically discover and register services from remote servers.
+    Discover and register services from remote RoutIR servers as local proxies.
+
+    Queries each server's ``/avail`` endpoint to list its available services,
+    then creates :class:`~routir.models.Relay`-backed processors for every
+    service not already registered locally.  This lets the local server
+    transparently forward requests to the remote server.
+
+    Only ``"search"`` and ``"score"`` service types are proxied.  Services
+    already registered locally take precedence (remote services with the same
+    name are skipped).
 
     Args:
-        servers: List of server URLs to query for available services
+        servers (list[str]): Base URLs of remote RoutIR servers to import from,
+            e.g. ``["http://gpu-host-1:5000", "http://gpu-host-2:5000"]``.
+            A single string is also accepted.
     """
     if isinstance(servers, str):
         servers = [servers]
@@ -76,13 +87,29 @@ def load_index_from_hfds(repo_id: str):
 
 async def load_config(config: str):
     """
-    Load and initialize the service configuration.
+    Parse the service configuration and register all collections and services.
 
-    Loads configuration from file or JSON string, initializes all collections
-    and services, and registers them with the ProcessorRegistry.
+    This is the main initialization entry point called by the server at startup.
+    It performs the following steps in order:
+
+    1. Parse the JSON config (file path or raw string) into a
+       :class:`~routir.config.config.Config` model.
+    2. Load any Python files listed in ``file_imports`` (custom engine classes).
+    3. For each collection, create and register a content processor.
+    4. For each service, instantiate the engine and register search (and
+       optionally score) processors.  Index paths with the ``hfds:`` prefix are
+       downloaded from Hugging Face Datasets first.
+    5. Discover and proxy services from remote servers listed in
+       ``server_imports``.
 
     Args:
-        config: Path to config file or JSON string
+        config (str): Either a file path to a JSON config file or a raw JSON
+            string.  File paths are read and parsed automatically.
+
+    Note:
+        This function modifies the global
+        :data:`~routir.processors.registry.ProcessorRegistry` singleton in place.
+        It is not safe to call concurrently.
     """
     if Path(config).exists():
         config = Path(config).read_text()

@@ -81,6 +81,18 @@ class _ProcessorRegistry:
 
 
 class DummyProcessor(Processor):
+    """A minimal, no-cache processor that wraps a single engine method.
+
+    Used internally by :func:`auto_register` to expose an engine method
+    (``search``, ``fuse``, etc.) as a :class:`Processor` without any batching
+    or caching overhead.  Requests are dispatched directly to the engine method
+    on every call.
+
+    Not intended for production workloads where batching matters; prefer the
+    config-based loading path via :func:`~routir.config.load.load_config`,
+    which creates :class:`~routir.processors.abstract.BatchProcessor` instances.
+    """
+
     def __init__(self, engine: Engine, method: str):
         super().__init__(cache_size=0)
         if not hasattr(engine, method):
@@ -98,19 +110,46 @@ ProcessorRegistry = _ProcessorRegistry()
 
 def auto_register(methods: Union[str, List[str]], **default_init_kwargs):
     """
-    Decorator to auto-register engines as processors.
+    Class decorator that instantiates an engine and registers it as a processor.
+
+    This is a lightweight alternative to the JSON config-based loading path,
+    useful for **built-in** or **singleton** engines (e.g. stateless fusion rules
+    like RRF) that do not need per-service batching or caching.
+
+    .. warning::
+
+        ``auto_register`` creates a single engine instance with ``default_init_kwargs``
+        at decoration time using :class:`DummyProcessor` (no batching, no caching).
+        For production engines with GPU models, use the config-based path instead so
+        that :class:`~routir.processors.abstract.BatchProcessor` and LRU/Redis caching
+        are applied.
+
+    The engine class must implement the ``{method}_batch`` method for every
+    *method* listed.  The decorator checks the corresponding ``can_{method}``
+    property (e.g. ``can_fuse`` for ``"fuse"``) and raises ``TypeError`` if it
+    returns ``False``.
+
+    The service is registered under the engine's *class name* in
+    :data:`ProcessorRegistry`.
 
     Args:
-        methods: Service type(s) to register ('search', 'score', 'fuse', etc.)
-        **default_init_kwargs: Default initialization kwargs for the engine
+        methods (str or list[str]): Service type(s) to register. Valid values:
+            ``"search"``, ``"score"``, ``"fuse"``, ``"decompose_query"``.
+        **default_init_kwargs: Keyword arguments forwarded to ``engine_cls()``
+            at decoration time.
 
     Returns:
-        Decorator function
+        The unmodified engine class (decorator is transparent).
 
     Example:
-        @auto_register("fuse")
-        class MyFusionEngine(Engine):
-            ...
+        .. code-block:: python
+
+            @auto_register("fuse")
+            class RRFFusion(Engine):
+                async def fuse_batch(self, queries, batch_scores, **kwargs):
+                    ...
+
+            # RRFFusion is now accessible as ProcessorRegistry["RRFFusion"]["fuse"]
     """
     if isinstance(methods, str):
         methods = [methods]
