@@ -275,4 +275,13 @@ We welcome any feedback, feature requests and pull requests. Please raise issues
 Feel free to reach out to us through emails, ACM SIGIR Slack, or GitHub issues. 
 
 ## Attribution
-TBA
+Please cite our paper if you use our RoutIR package.
+
+```bibtex
+@article{routir,
+  title={RoutIR: Fast Serving of Retrieval Pipelines for Retrieval-Augmented Generation},
+  author={Yang, Eugene and Yates, Andrew and Lawrie, Dawn and Mayfield, James and Adriaanse, Trevor},
+  journal={arXiv preprint arXiv:2601.10644},
+  year={2026}
+}
+```
