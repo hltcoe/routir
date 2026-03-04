@@ -218,7 +218,7 @@ class PLAIDX(Engine):
         self, queries: List[str], limit: Union[int, List[int]] = 20, subsets: List[str] = None, maxp: bool = True
     ) -> List[Dict[str, float]]:
         if self.index_path is None:
-            raise RuntimeError(f"Enging `{self.name}` does not have an index, can only be used as a reranker.")
+            raise RuntimeError(f"Engine `{self.name}` does not have an index, can only be used as a reranker.")
 
         if isinstance(limit, int):
             limit = [int(limit * 1.5)] * len(queries)
@@ -251,8 +251,10 @@ class PLAIDX(Engine):
         ]
 
     async def score_batch(self, queries: List[str], passages: List[str], candidate_length: List[int]) -> List[List[float]]:
-        assert len(candidate_length) == len(queries)
-        assert sum(candidate_length) == len(passages)
+        if len(candidate_length) != len(queries):
+            raise ValueError(f"len(candidate_length)={len(candidate_length)} does not match len(queries)={len(queries)}")
+        if sum(candidate_length) != len(passages):
+            raise ValueError(f"sum(candidate_length)={sum(candidate_length)} does not match len(passages)={len(passages)}")
         offsets = _cumsum([0] + candidate_length)
 
         window_size = self.config.get("sliding_window_size", 180)

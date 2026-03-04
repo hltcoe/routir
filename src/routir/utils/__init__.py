@@ -102,7 +102,7 @@ async def session_request(session: aiohttp.ClientSession, url: str, payload: Dic
             async with session.get(url) as response:
                 return await response.json()
     except Exception as e:
-        logger.warning(f"HTTP request to {url} failed: {e}")
+        logger.exception(f"HTTP {method} to {url} failed: {e}")
 
 def _cumsum(arr):
     return [sum(arr[: i + 1]) for i in range(len(arr))]

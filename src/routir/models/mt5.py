@@ -51,9 +51,9 @@ def _get_prediction_tokens(
             token_true_id = tokenizer.get_vocab()[token_true]
             return token_false_id, token_true_id
         else:
-            raise Exception(
-                f"We don't know the indexes for the non-relevant/relevant tokens for\
-                    the checkpoint {pretrained_model_name_or_path} and you did not provide any."
+            raise ValueError(
+                f"Unknown prediction tokens for checkpoint '{pretrained_model_name_or_path}'. "
+                f"Provide token_false and token_true explicitly."
             )
     else:
         token_false_id = tokenizer.get_vocab()[token_false]
@@ -91,7 +91,8 @@ class MT5Reranker(Reranker):
         """
         super().__init__(name, config, **kwargs)
 
-        assert "model_name_or_path" in self.config
+        if "model_name_or_path" not in self.config:
+            raise ValueError("MT5Reranker config is missing required 'model_name_or_path' field")
         self.q_max_length = int(self.config.get("q_max_length", 180))
         self.d_max_length = int(self.config.get("d_max_length", 512))
         self.batch_size = int(self.config.get("batch_size", 32))
@@ -146,8 +147,10 @@ class MT5Reranker(Reranker):
             else:
                 raise ValueError("mT5 Reranker does not support all pair scoring.")
 
-        assert len(candidate_length) == len(queries)
-        assert sum(candidate_length) == len(passages)
+        if len(candidate_length) != len(queries):
+            raise ValueError(f"len(candidate_length)={len(candidate_length)} does not match len(queries)={len(queries)}")
+        if sum(candidate_length) != len(passages):
+            raise ValueError(f"sum(candidate_length)={sum(candidate_length)} does not match len(passages)={len(passages)}")
 
         expanded_queries = sum([[query] * l for query, l in zip(queries, candidate_length)], [])
         # qidx = sum([[qid] * l for qid, l in zip(range(len(queries)), candidate_length)], [])
