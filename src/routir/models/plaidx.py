@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
-from ..utils import _cumsum, dict_topk, load_singleton, logger, pbar
+from ..utils import cumsum, dict_topk, load_singleton, logger, pbar
 from .abstract import Aggregation, Engine
 
 
@@ -92,6 +92,7 @@ def _load_mapping(fn, containing_passage_id=True):
         return ["_".join(line.strip().split("\t")[1].split("_")[:-1]) for line in pbar(open(fn))]
     else:
         return [line.strip().split("\t")[1] for line in pbar(open(fn))]
+
 
 
 class PLAIDX(Engine):
@@ -255,7 +256,7 @@ class PLAIDX(Engine):
             raise ValueError(f"len(candidate_length)={len(candidate_length)} does not match len(queries)={len(queries)}")
         if sum(candidate_length) != len(passages):
             raise ValueError(f"sum(candidate_length)={sum(candidate_length)} does not match len(passages)={len(passages)}")
-        offsets = _cumsum([0] + candidate_length)
+        offsets = cumsum([0] + candidate_length)
 
         window_size = self.config.get("sliding_window_size", 180)
         stride = self.config.get("sliding_window_stride", 90)

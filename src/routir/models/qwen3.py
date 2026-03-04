@@ -12,7 +12,7 @@ from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 from trecrun import TRECRun
 
-from ..utils import dict_topk, load_singleton, logger, _cumsum
+from ..utils import cumsum, dict_topk, load_singleton, logger
 from .abstract import Engine
 
 
@@ -124,7 +124,7 @@ class Qwen3(Engine):
     async def score_batch(self, queries: List[str], passages: List[str], candidate_length: List[int]) -> List[List[float]]:
         assert len(candidate_length) == len(queries)
         assert sum(candidate_length) == len(passages)
-        offsets = _cumsum([0] + candidate_length)
+        offsets = cumsum([0] + candidate_length)
 
         query_embeddings = await self.encode_text(self.add_query_instructions(queries))
         passage_embeddings = await self.encode_text(passages)

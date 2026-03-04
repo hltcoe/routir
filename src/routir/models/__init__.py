@@ -14,3 +14,4 @@ from .mt5 import MT5Reranker
 from .plaidx import PLAIDX
 from .qwen3 import Qwen3
 from .relay import Relay
+from .st import SentenceTransformerEngine
