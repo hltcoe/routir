@@ -156,7 +156,7 @@ class Qwen3EmbeddingModel:
             self.model = AutoModel.from_pretrained(
                 self.model_name, attn_implementation="flash_attention_2", torch_dtype=torch.float16
             ).to(device=self.device)
-        except ImportError:
+        except (ImportError, ValueError):
             logger.warning("Failed to import flash_attn for Qwen3... loading model without flash_attention_2")
             self.model = AutoModel.from_pretrained(self.model_name, torch_dtype=torch.float16).to(device=self.device)
 

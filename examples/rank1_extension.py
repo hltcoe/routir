@@ -117,7 +117,7 @@ class rank1(RerankerWrapper):
 
         forced_prompts = [
             f"{original_prompt}\n{cleaned_text}\n</think>"
-            for original_prompt, cleaned_text in zip(original_prompts, cleaned_texts)
+            for original_prompt, cleaned_text in zip(original_prompts, cleaned_texts[:-10])
         ]
 
         new_sampling_args = SamplingParams(
@@ -127,7 +127,13 @@ class rank1(RerankerWrapper):
             allowed_token_ids=[self.true_token, self.false_token],
             skip_special_tokens=False
         )
-        outputs = self.model.generate(forced_prompts, new_sampling_args)
+
+        try:
+            outputs = self.model.generate(forced_prompts, new_sampling_args)
+        except Exception as e:
+            logger.warning(f"Error: {e} on fixing error, setting at 0.5 score for all regeneration")
+            return forced_prompts, [-1]*len(forced_prompts), [0.5]*len(forced_prompts)
+            # all_final_texts, all_token_counts, all_scores
 
         # get the next token logits of just the next token
         all_final_texts = []
@@ -136,10 +142,10 @@ class rank1(RerankerWrapper):
         for i in range(len(outputs)):
             try:
                 text = outputs[i].outputs[0].text
-                final_logits = outputs[i].outputs[0].logprobs[-1]
+                final_logits = outputs[i].outputs[0].logprobs[-1]  # ty:ignore[not-subscriptable]
                 assert self.false_token in final_logits and self.true_token in final_logits, f"final logits are missing true or false: {final_logits}"
             except Exception as e:
-                print(f"Error: {e} on fixing error, setting at 0.5 score: {outputs[i].outputs}")
+                logger.warning(f"Error: {e} on fixing error, setting at 0.5 score: {outputs[i].outputs}")
                 all_scores.append(0.5)
                 all_token_counts.append(len(outputs[i].outputs[0].token_ids))
                 all_final_texts.append(text)
@@ -166,6 +172,16 @@ class rank1(RerankerWrapper):
             return self.tokenizer.decode(self.tokenizer(text)["input_ids"][:self.context_size])
         else:
             return text
+
+    def truncate_doc(self, doc: str) -> str:
+        """
+        Truncate the input text to the context size. This is not used, except if you are using the Llama 8B quantized model
+        """
+        tokenized = self.tokenizer(doc)["input_ids"]
+        if len(tokenized) >= (self.context_size-150):
+            return self.tokenizer.decode(tokenized[:self.context_size-150])
+        else:
+            return doc
 
     def _process_with_vllm(self, prompts):
         """
@@ -196,7 +212,7 @@ class rank1(RerankerWrapper):
             try:
                 final_logits = output.outputs[0].logprobs[-1]
             except Exception as e:
-                print(f"Error: {e} on getting final logits: {output.outputs[0]}")
+                logger.warning(f"Error: {e} on getting final logits: {output.outputs[0]}")
                 incomplete_prompts.append(prompts[i])
                 incomplete_texts.append(text)
                 incomplete_indices.append(i)
@@ -240,15 +256,15 @@ class rank1(RerankerWrapper):
         return "Determine if the following passage is relevant to the query. " \
                 "Answer only with 'true' or 'false'.\n" \
                 f"Query: {query}\n" \
-                f"Passage: {doc_content}\n" \
+                f"Passage: {self.truncate_doc(doc_content)}\n" \
                 "<think>" # force the model to start with this
 
-    def _prepare_prompts_for_rethink(self, prompts: List[str], texts: List[str], rethink_text: str = "Wait") -> List[str]:
-        """Prepare prompts for the rethinking step."""
-        full_texts = [p + t for p, t in zip(prompts, texts)]
-        stripped_texts = [t.split("</think>")[0] for t in full_texts]
-        just_generated_texts = [t.split("</think>")[0] for t in full_texts]
-        return [s + f"\n{rethink_text}" for s in stripped_texts], just_generated_texts
+    # def _prepare_prompts_for_rethink(self, prompts: List[str], texts: List[str], rethink_text: str = "Wait") -> List[str]:
+    #     """Prepare prompts for the rethinking step."""
+    #     full_texts = [p + t for p, t in zip(prompts, texts)]
+    #     stripped_texts = [t.split("</think>")[0] for t in full_texts]
+    #     just_generated_texts = [t.split("</think>")[0] for t in full_texts]
+    #     return [s + f"\n{rethink_text}" for s in stripped_texts], just_generated_texts
 
     @torch.inference_mode()
     def predict(self, input_to_rerank, **kwargs):
@@ -270,17 +286,18 @@ class rank1(RerankerWrapper):
             self.return_prompt(query, passage, self.dataset_prompt)
             for query, passage in zip(queries, passages)
         ]
-        print(f"Example prompt: ```\n{prompts[0]}\n```")
+        logger.warning(f"Example prompt: ```\n{prompts[0]}\n```")
 
         texts, token_counts, scores = self._process_with_vllm(prompts)
-        while self.force_rethink:
-            revised_prompts, previously_generated_texts = self._prepare_prompts_for_rethink(prompts, texts)
-            new_texts, new_token_counts, new_scores = self._process_with_vllm(revised_prompts)
-            # add to the previous output
-            texts = [prev + f"\n{rethink_text}" + f"{new_text}" for prev, new_text in zip(texts, new_texts)]
-            scores = new_scores
-            token_counts = [prev_token_count + new_token_count for prev_token_count, new_token_count in zip(token_counts, new_token_counts)]
-            self.force_rethink -= 1
+        scores = [ s if s is not None else 0.5 for s in scores ]
+        # while self.force_rethink:
+        #     revised_prompts, previously_generated_texts = self._prepare_prompts_for_rethink(prompts, texts)
+        #     new_texts, new_token_counts, new_scores = self._process_with_vllm(revised_prompts)
+        #     # add to the previous output
+        #     texts = [prev + f"\n{rethink_text}" + f"{new_text}" for prev, new_text in zip(texts, new_texts)]
+        #     scores = new_scores
+        #     token_counts = [prev_token_count + new_token_count for prev_token_count, new_token_count in zip(token_counts, new_token_counts)]
+        #     self.force_rethink -= 1
 
         return scores
 
@@ -292,6 +309,7 @@ class Rank1Engine(Engine):
         self.model = rank1(
             config.get("model", "jhu-clsp/rank1-32b"),
             num_gpus=config.get("ngpus", 1),
+            max_output_tokens=config.get("max_output_tokens", 8192),
             fp_options=torch.bfloat16
         )
 
@@ -305,7 +323,7 @@ class Rank1Engine(Engine):
         expanded_queries = sum([ [queries[i]]*l for i, l in enumerate(candidate_length) ], [])
         to_rerank_text = list(zip(expanded_queries, passages))
 
-        all_scores = self.model.predict(to_rerank_text)
+        all_scores = self.model.predict(to_rerank_text)  # ty:ignore[missing-argument]
 
         start = 0
         res = []

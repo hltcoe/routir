@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 import aiohttp
 
 from ..processors.registry import ProcessorRegistry
-from ..utils import session_request
+from ..utils import logger, session_request
 from .abstract import Engine
 
 
@@ -30,25 +30,45 @@ class Relay(Engine):
         """
         super().__init__(name, config, **kwargs)
 
-        assert "service" in self.config
+        if "service" not in self.config:
+            raise RuntimeError("Relay config is missing required 'service' field")
 
+        self.timeout = aiohttp.ClientTimeout(total=self.config.get("timeout", 600))
+        self.retries = self.config.get("retries", 10)
         self.other_kwargs = self.config.get("other_request_kwargs", {})
         # TODO: should support some runtime config like retry and timeout
         # TODO: support list of endpoints for load balancing
 
     async def _submit_payload(self, service_type, payloads: List[Dict[str, Any]]):
         if "endpoint" in self.config:
-            async with aiohttp.ClientSession() as session:
-                resps = await asyncio.gather(
-                    *[session_request(session, f"{self.config['endpoint']}/{service_type}", load) for load in payloads]
-                )
+            async with aiohttp.ClientSession(timeout=self.timeout) as session:
+                for iretry in range(self.retries):
+                    resps = await asyncio.gather(
+                        *[session_request(session, f"{self.config['endpoint']}/{service_type}", load) for load in payloads]
+                    )
+                    if all(r is not None for r in resps):
+                        break
+                    n_failed = sum(1 for r in resps if r is None)
+                    logger.warning(f"Retrying ({iretry+1}/{self.retries}) {self.config['endpoint']}/{service_type}: {n_failed}/{len(resps)} requests failed")
+                    await asyncio.sleep(0.01)
+                else:
+                    n_failed = sum(1 for r in resps if r is None)
+                    raise RuntimeError(
+                        f"{n_failed}/{len(resps)} requests to {self.config['endpoint']}/{service_type} "
+                        f"failed after {self.retries} retries"
+                    )
         else:
-            assert ProcessorRegistry.has_service(self.config["service"], service_type)
+            if not ProcessorRegistry.has_service(self.config["service"], service_type):
+                raise RuntimeError(f"Local service '{self.config['service']}' does not have type '{service_type}'")
             local_processor = ProcessorRegistry.get(self.config["service"], service_type)
             resps = await asyncio.gather(*[local_processor.submit(load) for load in payloads])
 
         for resp, payload in zip(resps, payloads):
-            assert resp["query"] == payload['query']
+            if resp["query"] != payload["query"]:
+                raise RuntimeError(
+                    f"Response/payload query mismatch from {self.config.get('endpoint', 'local')}: "
+                    f"expected '{payload['query']}', got '{resp['query']}'"
+                )
         return [
             # for backward compatiblity if the service is using `result` as key
             resp.get("scores", resp.get("result", {})) for resp in resps
@@ -58,11 +78,13 @@ class Relay(Engine):
     async def search_batch(self, queries, subsets=None, **kwargs):
         if subsets is None:
             subsets = ["none"] * len(queries)
-        assert len(subsets) == len(queries)
+        if len(subsets) != len(queries):
+            raise RuntimeError(f"len(subsets)={len(subsets)} does not match len(queries)={len(queries)}")
 
         for key in kwargs:
             if isinstance(kwargs[key], list):
-                assert len(kwargs[key]) == len(queries)
+                if len(kwargs[key]) != len(queries):
+                    raise RuntimeError(f"kwarg '{key}' has length {len(kwargs[key])} but expected {len(queries)} (one per query)")
             else:
                 kwargs[key] = [kwargs[key]] * len(queries)
 
@@ -81,8 +103,10 @@ class Relay(Engine):
     async def score_batch(self, queries, passages, candidate_length = None, **kwargs):
         if candidate_length is None:
             candidate_length = [len(passages)]
-        assert len(candidate_length) == len(queries)
-        assert sum(candidate_length) == len(passages)
+        if len(candidate_length) != len(queries):
+            raise RuntimeError(f"len(candidate_length)={len(candidate_length)} does not match len(queries)={len(queries)}")
+        if sum(candidate_length) != len(passages):
+            raise RuntimeError(f"sum(candidate_length)={sum(candidate_length)} does not match len(passages)={len(passages)}")
 
         payloads = []
         start = 0
@@ -92,6 +116,6 @@ class Relay(Engine):
                 "service": self.config["service"],
                 "passages": passages[start: start+l]
             })
-            start = start + 1
+            start = start + l
 
         return await self._submit_payload("score", payloads)

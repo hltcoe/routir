@@ -48,10 +48,10 @@ class _ProcessorRegistry:
         Raises:
             AssertionError: If service type is invalid or service already exists
         """
-        assert service_type in self.valid_service_types, f"Invalid service type `{service_type}`."
-        assert name not in self.all_services or service_type not in self.all_services[name], (
-            f"Service type `{service_type}` of name `{name}` already exists."
-        )
+        if service_type not in self.valid_service_types:
+            raise ValueError(f"Invalid service type '{service_type}'. Valid types: {self.valid_service_types}")
+        if name in self.all_services and service_type in self.all_services[name]:
+            raise ValueError(f"Service type '{service_type}' of name '{name}' already exists.")
 
         if name not in self.all_services:
             self.all_services[name] = {}
@@ -83,7 +83,8 @@ class _ProcessorRegistry:
 class DummyProcessor(Processor):
     def __init__(self, engine: Engine, method: str):
         super().__init__(cache_size=0)
-        assert hasattr(engine, method)
+        if not hasattr(engine, method):
+            raise ValueError(f"Engine {engine.__class__.__name__} does not have method '{method}'")
         self.service = getattr(engine, method)
         self.result_key = _output_keys[method]
 
@@ -116,8 +117,14 @@ def auto_register(methods: Union[str, List[str]], **default_init_kwargs):
 
     def engine_dec(engine_cls: type[Engine]):
         """Decorator function that registers the engine."""
-        assert issubclass(engine_cls, Engine)
-        assert all(getattr(engine_cls, f"can_{method}") for method in methods)
+        if not issubclass(engine_cls, Engine):
+            raise TypeError(f"{engine_cls.__name__} must be a subclass of Engine")
+        for method in methods:
+            if not getattr(engine_cls, f"can_{method}"):
+                raise TypeError(
+                    f"Engine {engine_cls.__name__} does not implement '{method}' "
+                    f"(can_{method} is False - did you override {method}_batch?)"
+                )
         # register each
         for method in methods:
             ProcessorRegistry.register(

@@ -81,7 +81,7 @@ class Engine(FactoryEnabled):
 
     async def score(self, query: str, passages: List[str], **kwargs) -> List[float]:
         """Score a single query against multiple passages."""
-        raise (await self.score_batch([query], passages, [len(passages)]))[0]
+        return (await self.score_batch([query], passages, [len(passages)]))[0]
 
     async def decompose_query_batch(self, queries: List[str], limit: List[int] = None, **kwargs) -> List[List[str]]:
         """
@@ -181,8 +181,10 @@ class Reranker(Engine):
         if "text_service" in self.config:
             # Optional, or else you would need to get the document text in other ways
             # e.g. ir_datasets
-            assert "endpoint" in self.config["text_service"]
-            assert "collection" in self.config["text_service"]
+            if "endpoint" not in self.config["text_service"]:
+                raise RuntimeError("text_service config is missing required 'endpoint' field")
+            if "collection" not in self.config["text_service"]:
+                raise RuntimeError("text_service config is missing required 'collection' field")
             self.text_service = self.config["text_service"]
 
         self.rerank_topk_max = int(self.config.get("rerank_topk_max", 100))
@@ -216,6 +218,12 @@ class Reranker(Engine):
                     for docid in set(docids)
                 ]
             )
+            failed = sum(1 for r in resps if r is None)
+            if failed:
+                raise RuntimeError(
+                    f"Failed to retrieve text for {failed}/{len(resps)} documents from "
+                    f"{self.text_service['endpoint']}/content"
+                )
             return {resp["id"]: resp["text"] for resp in resps}
 
     async def search_batch(self, queries, limit=20, **kwargs) -> List[Dict[str, float]]:
@@ -227,7 +235,8 @@ class Reranker(Engine):
 
         if not isinstance(limit, list):
             limit = [limit] * len(queries)
-        assert len(limit) == len(queries)
+        if len(limit) != len(queries):
+            raise RuntimeError(f"len(limit)={len(limit)} does not match len(queries)={len(queries)}")
 
         multiplier = kwargs.get("rerank_multiplier", self.rerank_multiplier)
 

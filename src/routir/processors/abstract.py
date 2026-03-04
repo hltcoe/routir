@@ -1,5 +1,6 @@
 import asyncio
 import time
+import traceback
 import uuid
 from typing import Any, Dict, List
 
@@ -154,7 +155,7 @@ class BatchProcessor(Processor):
                     batch_ids.append(first_id)
                     logger.debug(f"First item {first_id} received")
                 except Exception as e:
-                    logger.error(f"Error getting first item: {e}")
+                    logger.exception("Error getting first item")
                     await asyncio.sleep(0.1)
                     continue
 
@@ -175,7 +176,7 @@ class BatchProcessor(Processor):
                         logger.debug("Timeout waiting for more items")
                         break
                     except Exception as e:
-                        logger.error(f"Error collecting batch: {e}")
+                        logger.exception("Error collecting batch")
                         break
 
                 # Process the batch
@@ -201,9 +202,7 @@ class BatchProcessor(Processor):
                         if item_id in self.result_events:
                             self.result_events[item_id].set()
                 except Exception as e:
-                    import traceback
-
-                    logger.error(f"Error processing batch: {traceback.format_exc()}")
+                    logger.exception("Error processing batch")
                     # Return error to all waiting requests
                     for item_id in batch_ids:
                         self.results[item_id] = {"error": f"Processing error: {str(e)}"}
@@ -215,7 +214,7 @@ class BatchProcessor(Processor):
                     self.queue.task_done()
 
             except Exception as e:
-                logger.error(f"Unexpected error in worker: {e}")
+                logger.exception("Unexpected error in worker")
                 # Small delay to prevent CPU spinning in case of persistent errors
                 await asyncio.sleep(0.1)
 

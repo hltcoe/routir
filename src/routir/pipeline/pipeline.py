@@ -2,7 +2,7 @@ import asyncio
 from typing import Any, Dict, List
 
 from ..processors.registry import ProcessorRegistry
-from ..utils import dict_topk
+from ..utils import dict_topk, logger
 from .parser import CallSequence, ParallelCallSequences, PipelineComponent, SystemCall, parser
 
 
@@ -44,17 +44,21 @@ class SearchPipeline:
         if verify:
             self.verify()
         alias_not_found = set(self.runtime_kwargs.keys()) - set([c.alias for c in self.pipeline.all_calls])
-        assert len(alias_not_found) == 0, f"Cannot find alias {alias_not_found}"
+        if alias_not_found:
+            raise RuntimeError(f"Runtime kwargs reference unknown pipeline aliases: {alias_not_found}")
 
     def verify(self):
         """Verify that all required services exist in the registry."""
         if any(call.role == "rerank" for call in self.pipeline.all_calls):
-            assert ProcessorRegistry.has_service(self.collection, "content"), \
-                f"Cannot find content service for collection `{self.collection}` but the pipeline involve reranking"
+            if not ProcessorRegistry.has_service(self.collection, "content"):
+                raise RuntimeError(
+                    f"Pipeline requires reranking but no content service found for collection '{self.collection}'"
+                )
         for call in self.pipeline.all_calls:
-            assert ProcessorRegistry.has_service(call.name, _role_to_service[call.role]), (
-                f"Cannot find a {_role_to_service[call.role]} service under `{call.name}`"
-            )
+            if not ProcessorRegistry.has_service(call.name, _role_to_service[call.role]):
+                raise RuntimeError(
+                    f"No {_role_to_service[call.role]} service registered under '{call.name}'"
+                )
 
     @classmethod
     def from_string(
@@ -86,16 +90,18 @@ class SearchPipeline:
         """
         if doc_id not in self.doc_content_cache:
             ret = await ProcessorRegistry[self.collection]["content"].submit({"id": doc_id})
+            if "error" in ret:
+                raise RuntimeError(f"Failed to retrieve content for document '{doc_id}': {ret['error']}")
             self.doc_content_cache[doc_id] = ret["text"]
         return self.doc_content_cache[doc_id]
 
     async def run(
         self,
         query: str,
-        last_output: Dict[str, Any] = None,
+        last_output: Any = None,
         current_node: PipelineComponent = None,
-        scratch: Dict[str, Dict[str, Any]] = None,
-    ) -> List[Dict[str, float]]:
+        scratch: Dict[tuple, Dict[str, Any]] = None,
+    ) -> Dict[str, float]:
         """
         Recursively execute the pipeline for a query.
 
@@ -131,7 +137,8 @@ class SearchPipeline:
                 query, {"scores": [o["scores"] for o in concurrent_run_outputs], **last_output}, current_node.merger, scratch
             )
 
-        assert isinstance(current_node, SystemCall)
+        if not isinstance(current_node, SystemCall):
+            raise RuntimeError(f"Expected SystemCall node, got {type(current_node).__name__}")
 
         payload = {"query": query, **last_output, **scratch, **self.runtime_kwargs.get(current_node.alias, {})}
         if current_node.limit is not None:
@@ -141,23 +148,40 @@ class SearchPipeline:
 
         if current_node.role == "search":
             ret = await processor.submit(payload)
-            assert "scores" in ret and isinstance(ret["scores"], dict)
+            if "scores" not in ret or not isinstance(ret["scores"], dict):
+                raise RuntimeError(
+                    f"Service '{current_node.name}' (search) returned unexpected format; "
+                    f"expected dict 'scores', got keys: {list(ret.keys())}"
+                )
 
         if current_node.role == "merger":
             ret = await processor.submit(payload)
-            assert "scores" in ret and isinstance(ret["scores"], dict)
+            if "scores" not in ret or not isinstance(ret["scores"], dict):
+                raise RuntimeError(
+                    f"Service '{current_node.name}' (merger) returned unexpected format; "
+                    f"expected dict 'scores', got keys: {list(ret.keys())}"
+                )
 
         if current_node.role == "rerank":
             docid_to_rerank: List[str] = list(last_output["scores"].keys())
-            doc_text_list = await asyncio.gather(*[self.get_doc_content(d) for d in docid_to_rerank])
+            logger.info(f"Gathering doc content for {len(docid_to_rerank)} documents")
+            doc_text_list = await asyncio.gather(*[self.get_doc_content(d) for d in sorted(docid_to_rerank)])
             payload["passages"] = doc_text_list
             ret = await processor.submit(payload)
-            assert "scores" in ret and isinstance(ret["scores"], list)
+            if "scores" not in ret or not isinstance(ret["scores"], list):
+                raise RuntimeError(
+                    f"Service '{current_node.name}' (rerank) returned unexpected format; "
+                    f"expected list 'scores', got keys: {list(ret.keys())}"
+                )
             ret["scores"] = dict(zip(docid_to_rerank, ret["scores"]))
 
         if current_node.role == "expander":
             ret = await processor.submit(payload)
-            assert "queries" in ret and isinstance(ret["queries"], list)
+            if "queries" not in ret or not isinstance(ret["queries"], list):
+                raise RuntimeError(
+                    f"Service '{current_node.name}' (expander) returned unexpected format; "
+                    f"expected list 'queries', got keys: {list(ret.keys())}"
+                )
 
         # apply limit here just to safe
         if current_node.limit is not None:

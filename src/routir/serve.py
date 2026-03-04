@@ -37,14 +37,14 @@ async def process_query():
 
         service = data.pop("service")
         if not ProcessorRegistry.has_service(service, "search"):
-            return jsonify({"error": "Unsupported service"}), 400
+            return jsonify({"error": f"Service '{service}' not found or does not support search"}), 400
 
         result = await ProcessorRegistry.get(service, "search").submit(data)
         return jsonify(result)
 
     except Exception as e:
-        logger.error(f"Error processing request: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error in /search")
+        return jsonify({"error": f"{type(e).__name__}: {e}"}), 500
 
 
 @app.route("/score", methods=["POST"])
@@ -58,14 +58,14 @@ async def process_scoring():
 
         service = data.pop("service")
         if not ProcessorRegistry.has_service(service, "score"):
-            return jsonify({"error": "Unsupported service"}), 400
+            return jsonify({"error": f"Service '{service}' not found or does not support scoring"}), 400
 
         result = await ProcessorRegistry.get(service, "score").submit(data)
         return jsonify(result)
 
     except Exception as e:
-        logger.error(f"Error processing request: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error in /score")
+        return jsonify({"error": f"{type(e).__name__}: {e}"}), 500
 
 
 @app.route("/content", methods=["POST"])
@@ -77,14 +77,14 @@ async def process_get_content():
             return jsonify({"error": "No id provided"}), 400
 
         if not ProcessorRegistry.has_service(data["collection"], "content"):
-            return jsonify({"error": "Unsupported collection"}), 400
+            return jsonify({"error": f"Collection '{data['collection']}' not found"}), 400
 
         result = await ProcessorRegistry.get(data["collection"], "content").submit(data)
         return jsonify({**data, **result}), 400 if "error" in result else 200
 
     except Exception as e:
-        logger.error(f"Error processing request: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error in /content")
+        return jsonify({"error": f"{type(e).__name__}: {e}"}), 500
 
 
 @app.route("/pipeline", methods=["POST"])
@@ -104,8 +104,8 @@ async def process_pipeline():
         return jsonify({**data, **result}), 200
 
     except Exception as e:
-        logger.error(f"Error processing request: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error in /pipeline")
+        return jsonify({"error": f"{type(e).__name__}: {e}"}), 500
 
 
 @app.route("/ping", methods=["GET"])
@@ -140,6 +140,8 @@ def main():
     # app.run(host=args.host, port=args.port, use_reloader=False)
     hypercorn_config = Config()
     hypercorn_config.bind = [f"{args.host}:{args.port}"]
+    hypercorn_config.startup_timeout = 600
+    # hypercorn_config.keep_alive_timeout = 600
     asyncio.run(serve(app, hypercorn_config))
 
 

@@ -17,7 +17,7 @@ from .lazy_import import _lazy_modules
 
 
 logging.basicConfig(
-    format="[%(asctime)s][%(levelname)s][%(name)s] %(message)s",
+    format="[%(asctime)s][%(levelname)s][%(name)s:%(filename)s:%(lineno)d] %(message)s",
     datefmt="%m/%d/%Y %H:%M:%S",
     level=logging.INFO,
 )
@@ -106,8 +106,10 @@ async def session_request(session: aiohttp.ClientSession, url: str, payload: Dic
             async with session.get(url) as response:
                 return await response.json()
     except Exception as e:
-        logger.warning(f"HTTP request to {url} failed: {e}")
+        logger.exception(f"HTTP {method} to {url} failed: {e}")
 
+def _cumsum(arr):
+    return [sum(arr[: i + 1]) for i in range(len(arr))]
 
 def _recursive_subclasses(cls: type):
     """
@@ -130,6 +132,9 @@ class FactoryEnabled(ABC):
 
     Allows loading subclasses by their name string.
     """
+    # TODO: use `__init_subclass__` to allow alternative names at registration
+    # and also prevent name conflict
+    # might need to have a flag for defining top level entry
 
     @classmethod
     def load(cls, cls_name: str, **kwargs):

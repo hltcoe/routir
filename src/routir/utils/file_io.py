@@ -127,7 +127,8 @@ class OffsetFile(RandomAccessReader):
 
 class MSMARCOSegOffset(RandomAccessReader):
     def __init__(
-        self, path: Path, num_workers: int = 8, filename_pattern="msmarco_v2.1_doc_segmented_{shard}.json.gz", id_parser=None
+        self, path: Path, num_workers: int = 32, filename_pattern="msmarco_v2.1_doc_segmented_{shard}.json.gz", id_parser=None,
+        force_load_all: bool = False
     ):
         super().__init__(path)
 
@@ -144,12 +145,26 @@ class MSMARCOSegOffset(RandomAccessReader):
         self.id_parser = id_parser if id_parser is not None else self._parse_idx
 
         self.cached_fps: Dict[str, io.BytesIO] = {}
+        self.loaded: dict[str, str] | None = None
+        if force_load_all:
+            self._load_all_docs()
+
+    def _load_all_docs(self):
+        self.loaded = {}
+        for fn in pbar(list(self.path.glob(self.filename_pattern.format(shard="*"))), desc='loading all docs'):
+            with self.opener(fn) as fp:
+                for line in pbar(fp, leave=False):
+                    line = line.decode()
+                    self.loaded[json.loads(line)['docid']] = line
 
     def _parse_idx(self, idx: str):
         idx = idx.split("_")
         return idx[3], int(idx[5])
 
     def __getitem__(self, idx: str):
+        if self.loaded is not None:
+            return self.loaded[idx]
+
         shard, off = self.id_parser(idx)
         fn = str(self.path / self.filename_pattern.format(shard=shard))
         if fn not in self.cached_fps:
@@ -160,3 +175,7 @@ class MSMARCOSegOffset(RandomAccessReader):
 
     def __contains__(self, idx: str):
         return self[idx] != ""
+
+    def __del__(self):
+        for fp in self.cached_fps.values():
+           fp.close()
