@@ -8,6 +8,7 @@ from ..models import Engine, Relay
 from ..processors import (
     AsyncPairwiseScoreProcessor,
     AsyncQueryProcessor,
+    BatchDecomposeQueryProcessor,
     BatchPairwiseScoreProcessor,
     ContentProcessor,
     Processor,
@@ -163,6 +164,18 @@ async def load_config(config: str):
             )
             await processor.start()
             ProcessorRegistry.register(service_config.name, "score", processor)
+
+        if engine.can_decompose_query:
+            processor = BatchDecomposeQueryProcessor(
+                engine,
+                batch_size=service_config.batch_size,
+                max_wait_time=service_config.max_wait_time,
+                cache_size=service_config.cache,
+                cache_ttl=service_config.cache_ttl,
+                cache_key=_cache_key,
+            )
+            await processor.start()
+            ProcessorRegistry.register(service_config.name, "decompose_query", processor)
 
         logger.info(f"{service_config.name} initialized and ready")
 

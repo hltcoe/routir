@@ -41,6 +41,7 @@ dense = ["numpy", "faiss-cpu"]
 gpu = ["faiss-gpu", "torch"]
 plaidx = ["plaid-x"]
 sparse = ["pyjnius==1.6.1", "bsparse"]
+vllm = ["vllm", "torch", "transformers"]
 docs = [
     "sphinx>=4.0",
     "sphinx-rtd-theme>=0.5",

@@ -38,6 +38,8 @@ class Relay(Engine):
         self.other_kwargs = self.config.get("other_request_kwargs", {})
         # TODO: should support some runtime config like retry and timeout
         # TODO: support list of endpoints for load balancing
+        # TODO: implement relay for collections (content endpoint) so remote document
+        #       stores can be used transparently by pipelines and rerankers
 
     async def _submit_payload(self, service_type, payloads: List[Dict[str, Any]]):
         if "endpoint" in self.config:

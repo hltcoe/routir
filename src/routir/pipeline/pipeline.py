@@ -229,9 +229,12 @@ class SearchPipeline:
                 *[self.run(q, last_output, seq, scratch) for seq in current_node.sequences for q in expanded_queries]
             )
 
-            return await self.run(
+            merger_result = await self.run(
                 query, {"scores": [o["scores"] for o in concurrent_run_outputs], **last_output}, current_node.merger, scratch
             )
+            if current_node.expander is not None:
+                merger_result["expanded_queries"] = expanded_queries
+            return merger_result
 
         if not isinstance(current_node, SystemCall):
             raise RuntimeError(f"Expected SystemCall node, got {type(current_node).__name__}")

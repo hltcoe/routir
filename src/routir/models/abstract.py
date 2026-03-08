@@ -292,6 +292,11 @@ class Engine(FactoryEnabled):
 
     async def fuse(self, query: str, scores: List[Dict[str, float]], **kwargs) -> Dict[str, float]:
         """Fuse multiple result sets for a single query."""
+        # Rename "queries" from pipeline payload to "expanded_queries" to avoid
+        # shadowing fuse_batch's positional `queries` arg, while still making
+        # the expander's sub-queries available to custom fusion engines.
+        if "queries" in kwargs:
+            kwargs["expanded_queries"] = kwargs.pop("queries")
         return (await self.fuse_batch([query], [scores], **kwargs))[0]
 
     @property

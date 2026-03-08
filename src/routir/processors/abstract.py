@@ -232,7 +232,9 @@ class BatchProcessor(Processor):
 
                 # Process the batch
                 batch_size = len(batch)
-                logger.info(f"Processing batch of size {batch_size}, {self.queue.qsize()} pending")
+                engine_name = getattr(getattr(self, "engine", None), "name", None) or "unknown"
+                processor_type = self.__class__.__name__
+                logger.info(f"[{engine_name}/{processor_type}] Processing batch of size {batch_size}, {self.queue.qsize()} pending")
 
                 # TODO: should try to dedup the batch based on queries etc
 

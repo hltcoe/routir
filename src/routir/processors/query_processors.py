@@ -57,3 +57,23 @@ class BatchQueryProcessor(BatchProcessor):
             results.append(result)
 
         return results
+
+
+class BatchDecomposeQueryProcessor(BatchProcessor):
+    def __init__(self, engine: Engine, **kwargs):
+        super().__init__(**kwargs)
+        self.engine = engine
+
+    async def _process_batch(self, batch: List[Dict]) -> List[Dict]:
+        queries = [item.get("query", "") for item in batch]
+        limits = [int(item["limit"]) if "limit" in item else None for item in batch]
+        # Collect extra kwargs (e.g. prompt) from the first item — batch items
+        # originate from the same pipeline stage so they share the same kwargs.
+        extra = {k: v for k, v in batch[0].items() if k not in ("query", "limit", "service", "subset", "scores")}
+
+        sub_queries_list = await self.engine.decompose_query_batch(queries, limit=limits, **extra)
+
+        return [
+            {"query": item["query"], "queries": sub_queries, "service": self.engine.name, "processed": True, "timestamp": time.time()}
+            for item, sub_queries in zip(batch, sub_queries_list)
+        ]

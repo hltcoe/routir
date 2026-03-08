@@ -9,6 +9,7 @@ from typing import Any, Dict, List
 
 from .abstract import Aggregation, Engine, Reranker
 from .fusion import Fusion
+from .llm_engine import LLMEngine
 from .lsr import LSR
 from .mt5 import MT5Reranker
 from .plaidx import PLAIDX
