@@ -1,8 +1,8 @@
-# RoutIR: Fast Server for Hosting Retrieval Models for Retrieval-Augmented Generation
-
 <p align="center">
     <img width="400px" src="https://raw.githubusercontent.com/hltcoe/routir/main/docs/routir.png" />
 </p>
+
+# RoutIR: Fast Server for Hosting Retrieval Models for Retrieval-Augmented Generation
 
 <div align="center">
 
