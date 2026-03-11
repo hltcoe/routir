@@ -1,5 +1,9 @@
 # RoutIR: Fast Server for Hosting Retrieval Models for Retrieval-Augmented Generation
 
+<p align="center">
+    <img width="400px" src="https://raw.githubusercontent.com/hltcoe/routir/main/docs/routir.png" />
+</p>
+
 <div align="center">
 
 [![PyPI version fury.io](https://badge.fury.io/py/routir.svg)](https://pypi.python.org/pypi/routir/)
