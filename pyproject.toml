@@ -19,7 +19,7 @@ requires-python = ">=3.9"
 
 # core depenencies
 dependencies = [
-    "lark", "quart", "trecrun", "hypercorn", "openai", "aiohttp", "tqdm", "pydantic",
+    "lark", "quart", "quart-cors", "trecrun", "hypercorn", "openai", "aiohttp", "tqdm", "pydantic",
     "huggingface_hub", "hf_xet"
 ]
 

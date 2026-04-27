@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import os
 
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
@@ -12,6 +13,12 @@ from .utils import logger
 
 
 app = Quart(__name__)
+
+if os.environ.get("CORS_ALLOWED", "False") == "True":
+    from quart_cors import cors
+    logger.warning("CORS_ALLOWED=True")
+    app = cors(app, allow_origin="*")
+
 config = None
 
 
