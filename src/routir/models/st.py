@@ -2,7 +2,6 @@ import itertools
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
-import torch
 from tqdm import tqdm
 from trecrun import TRECRun
 
@@ -14,6 +13,11 @@ try:
     import faiss
 except ImportError:
     logger.warning("Failed to import Faiss for SentenceTransformerEngine")
+
+try:
+    import torch
+except ImportError:
+    logger.warning("Failed to import torch for SentenceTransformerEngine")
 
 try:
     from sentence_transformers import SentenceTransformer

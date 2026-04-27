@@ -6,15 +6,19 @@ from typing import Any, Dict, List, Union
 
 import numpy as np
 import openai
-import torch
-import torch.nn.functional as F
 from tqdm import tqdm
-from transformers import AutoModel, AutoTokenizer
 from trecrun import TRECRun
 
 from ..utils import cumsum, dict_topk, load_singleton, logger
 from .abstract import Engine
 
+
+try:
+    import torch
+    import torch.nn.functional as F
+    from transformers import AutoModel, AutoTokenizer
+except ImportError:
+    logger.warning("Failed to import Torch and transformers, cannot use local model")
 
 try:
     import faiss
@@ -136,7 +140,7 @@ class Qwen3(Engine):
 
 
 class Qwen3EmbeddingModel:
-    def __init__(self, model_name="Qwen/Qwen3-Embedding-0.6B", max_length=8192, batch_size=8, instruction=None, device=torch.device("cuda")):
+    def __init__(self, model_name="Qwen/Qwen3-Embedding-0.6B", max_length=8192, batch_size=8, instruction=None, device="cuda"):
         self.model_name = model_name
         self.max_length = max_length
         self.batch_size = batch_size
@@ -150,7 +154,7 @@ class Qwen3EmbeddingModel:
             return_tensors="pt",
         )
 
-        self.device = device
+        self.device = torch.device(device)
 
         try:
             self.model = AutoModel.from_pretrained(
@@ -162,7 +166,7 @@ class Qwen3EmbeddingModel:
 
         self.model.eval()
 
-    def last_token_pool(self, last_hidden_states: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+    def last_token_pool(self, last_hidden_states: "torch.Tensor", attention_mask: "torch.Tensor") -> "torch.Tensor":
         left_padding = attention_mask[:, -1].sum() == attention_mask.shape[0]
         if left_padding:
             return last_hidden_states[:, -1]
