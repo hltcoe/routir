@@ -1,6 +1,9 @@
 import argparse
 import asyncio
 import os
+import subprocess
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
@@ -10,6 +13,38 @@ from .config.load import load_config
 from .pipeline import PipelineAliasRegistry, SearchPipeline
 from .processors import ProcessorRegistry
 from .utils import logger
+
+
+BANNER = r"""
+█████▄   ▄▄▄  ▄▄ ▄▄ ▄▄▄▄▄▄ ██ █████▄
+██▄▄██▄ ██▀██ ██ ██   ██   ██ ██▄▄██▄
+██   ██ ▀███▀ ▀███▀   ██   ██ ██   ██
+"""
+
+
+def _get_version_info() -> str:
+    """Return ``vX.Y.Z (abcdef1)`` when run from a git checkout, else ``vX.Y.Z``."""
+    try:
+        pkg_version = version("routir")
+    except PackageNotFoundError:
+        pkg_version = "unknown"
+    git_hash = None
+    try:
+        git_hash = subprocess.check_output(
+            ["git", "-C", str(Path(__file__).resolve().parent), "rev-parse", "--short", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip() or None
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        pass
+    return f"v{pkg_version} ({git_hash})" if git_hash else f"v{pkg_version}"
+
+
+def _print_banner():
+    blue, reset = "\033[94m", "\033[0m"
+    for line in BANNER.strip("\n").splitlines():
+        logger.info(f"{blue}{line}{reset}")
+    logger.info(f"{blue}  {_get_version_info()}{reset}")
 
 
 app = Quart(__name__)
@@ -292,6 +327,8 @@ def main():
     parser.add_argument("--cache_dir", type=str, default="./.cache")
 
     args = parser.parse_args()
+
+    _print_banner()
 
     global config
     config = args.config
