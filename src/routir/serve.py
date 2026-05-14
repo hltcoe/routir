@@ -186,12 +186,13 @@ async def process_pipeline():
             "runtime_kwargs": {"bm25": {"subset": "en"}}
         }
 
-    Required fields: ``pipeline``, ``collection``, ``query``.
+    Required fields: ``pipeline``, ``query``.  ``collection`` is required only
+    when the pipeline contains a reranking stage (which needs document text).
 
     ``pipeline`` is a DSL string; see :mod:`routir.pipeline.parser` for
-    syntax.  ``collection`` must be a registered content service (needed for
-    reranking stages).  ``runtime_kwargs`` is optional and maps pipeline
-    aliases to extra per-stage parameters.
+    syntax.  ``collection``, when supplied, must be a registered content
+    service.  ``runtime_kwargs`` is optional and maps pipeline aliases to
+    extra per-stage parameters.
 
     **Response** (200 OK) — same fields as ``/search`` plus the echoed
     request fields:
@@ -214,12 +215,20 @@ async def process_pipeline():
         data = await request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
-        # required fields
-        for field in ["pipeline", "collection", "query"]:
+        # required fields (collection is conditionally required; checked in verify)
+        for field in ["pipeline", "query"]:
             if field not in data:
                 return jsonify({"error": f"No {field} provided"}), 400
 
-        pipeline = SearchPipeline.from_string(data["pipeline"], data["collection"], runtime_kwargs=data.get("runtime_kwargs", {}))
+        try:
+            pipeline = SearchPipeline.from_string(
+                data["pipeline"],
+                data.get("collection"),
+                runtime_kwargs=data.get("runtime_kwargs", {}),
+            )
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+
         result = await pipeline.run(data["query"])
         return jsonify({**data, **result}), 200
 

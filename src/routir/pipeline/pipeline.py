@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ..processors.registry import ProcessorRegistry
 from ..utils import dict_topk, logger
@@ -68,7 +68,8 @@ class SearchPipeline:
     """
 
     def __init__(
-        self, pipeline: PipelineComponent, collection: str, runtime_kwargs: Dict[str, Dict[str, Any]] = None, verify: bool = True
+        self, pipeline: PipelineComponent, collection: Optional[str] = None,
+        runtime_kwargs: Dict[str, Dict[str, Any]] = None, verify: bool = True
     ):
         """
         Initialize search pipeline.
@@ -76,20 +77,21 @@ class SearchPipeline:
         Args:
             pipeline (PipelineComponent): Parsed pipeline AST, typically produced
                 by :func:`~routir.pipeline.parser.parser.parse`.
-            collection (str): Document collection name. Must be registered as a
-                ``"content"`` service in
-                :data:`~routir.processors.registry.ProcessorRegistry` when any
-                reranking stage is present.
+            collection (str, optional): Document collection name. Required only
+                when the pipeline contains a reranking stage (which fetches
+                document text). Must be registered as a ``"content"`` service in
+                :data:`~routir.processors.registry.ProcessorRegistry`.
             runtime_kwargs (dict, optional): Per-alias extra parameters injected
                 into individual service call payloads at execution time. Keys are
                 pipeline aliases; values are dicts.  Example::
 
                     {"dense": {"instruction": "Retrieve relevant passages"}}
 
-            verify (bool): If ``True`` (default), raise ``RuntimeError`` at
-                construction time if any referenced service is missing from the
-                registry, or if a reranking stage is present but no content
-                service is configured for the collection.
+            verify (bool): If ``True`` (default), validate the pipeline at
+                construction time.  Raises ``ValueError`` for bad input (e.g.
+                the pipeline reranks but no ``collection`` was provided) and
+                ``RuntimeError`` for operational issues (referenced service or
+                content processor not registered).
         """
         self.pipeline = pipeline
         self.collection = collection
@@ -105,6 +107,10 @@ class SearchPipeline:
     def verify(self):
         """Verify that all required services exist in the registry."""
         if any(call.role == "rerank" for call in self.pipeline.all_calls):
+            if not self.collection:
+                raise ValueError(
+                    "pipeline contains reranking stage(s) and requires a `collection` field"
+                )
             if not ProcessorRegistry.has_service(self.collection, "content"):
                 raise RuntimeError(
                     f"Pipeline requires reranking but no content service found for collection '{self.collection}'"
@@ -117,7 +123,8 @@ class SearchPipeline:
 
     @classmethod
     def from_string(
-        cls, pipeline_string: str, collection: str, runtime_kwargs: Dict[str, Dict[str, Any]] = None, verify: bool = True
+        cls, pipeline_string: str, collection: Optional[str] = None,
+        runtime_kwargs: Dict[str, Dict[str, Any]] = None, verify: bool = True
     ) -> "SearchPipeline":
         """
         Create a pipeline from a DSL string.
@@ -133,8 +140,9 @@ class SearchPipeline:
                 "expander{dense, sparse}RRF%100"   # query expansion
                 "dense[d]%100 >> reranker%20"      # with alias for runtime_kwargs
 
-            collection (str): Document collection name for content lookup during
-                reranking.
+            collection (str, optional): Document collection name for content
+                lookup during reranking. Required only when the pipeline
+                contains a reranking stage.
             runtime_kwargs (dict, optional): Per-alias extra parameters injected
                 into service payloads at query time.  Keys are pipeline aliases
                 (the name inside ``[...]``; defaults to service name).  Example::
