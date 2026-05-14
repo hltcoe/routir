@@ -5,6 +5,7 @@ from typing import List
 import aiohttp
 
 from ..models import Engine, Relay
+from ..pipeline import PipelineAliasRegistry
 from ..processors import (
     AsyncPairwiseScoreProcessor,
     AsyncQueryProcessor,
@@ -180,5 +181,16 @@ async def load_config(config: str):
         logger.info(f"{service_config.name} initialized and ready")
 
     await auto_add_relay_services(config.server_imports)
+
+    # Collections (role "content") never appear in the pipeline DSL, so they
+    # cannot collide with aliases.  Only check against services callable from
+    # within a pipeline string.
+    callable_roles = {"search", "score", "fuse", "decompose_query"}
+    reserved_names = {
+        name
+        for name, by_role in ProcessorRegistry.all_services.items()
+        if callable_roles & by_role.keys()
+    }
+    PipelineAliasRegistry.register_all(config.pipeline_aliases, reserved_names)
 
     logger.info("All services are initialized")

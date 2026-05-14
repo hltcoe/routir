@@ -7,7 +7,7 @@ from hypercorn.config import Config
 from quart import Quart, jsonify, request
 
 from .config.load import load_config
-from .pipeline import SearchPipeline
+from .pipeline import PipelineAliasRegistry, SearchPipeline
 from .processors import ProcessorRegistry
 from .utils import logger
 
@@ -243,17 +243,21 @@ async def get_avail_service():
     .. code-block:: json
 
         {
-            "search":         ["bm25", "dense"],
-            "score":          ["cross-encoder"],
-            "fuse":           ["rrf"],
-            "decompose_query":[],
-            "content":        ["my-corpus"]
+            "search":           ["bm25", "dense"],
+            "score":            ["cross-encoder"],
+            "fuse":             ["rrf"],
+            "decompose_query":  [],
+            "content":          ["my-corpus"],
+            "pipeline_aliases": {"ragtime2": "{zho%100, rus%100, ...}ScoreFusion"}
         }
 
     Used by :func:`~routir.config.load.auto_add_relay_services` to discover
     services on remote servers.
     """
-    return jsonify(ProcessorRegistry.get_all_services())
+    return jsonify({
+        **ProcessorRegistry.get_all_services(),
+        "pipeline_aliases": PipelineAliasRegistry.source,
+    })
 
 
 def main():

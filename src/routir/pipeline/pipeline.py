@@ -3,7 +3,8 @@ from typing import Any, Dict, List
 
 from ..processors.registry import ProcessorRegistry
 from ..utils import dict_topk, logger
-from .parser import CallSequence, ParallelCallSequences, PipelineComponent, SystemCall, parser
+from .aliases import PipelineAliasRegistry
+from .parser import CallSequence, ParallelCallSequences, PipelineComponent, SystemCall, expand_aliases, parser
 
 
 # TODO: probably should unify it...
@@ -146,7 +147,9 @@ class SearchPipeline:
         Returns:
             SearchPipeline: Ready-to-run pipeline instance.
         """
-        return cls(parser.parse(pipeline_string), collection, runtime_kwargs, verify)
+        ast = parser.parse(pipeline_string)
+        ast = expand_aliases(ast, PipelineAliasRegistry.expanded)
+        return cls(ast, collection, runtime_kwargs, verify)
 
     async def get_doc_content(self, doc_id: str):
         """

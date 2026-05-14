@@ -33,8 +33,9 @@ The module-level :data:`parser` singleton parses DSL strings into
 :class:`PipelineComponent` AST nodes consumed by :class:`~routir.pipeline.SearchPipeline`.
 """
 
+import copy
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from lark import Lark, Transformer
 
@@ -230,3 +231,80 @@ class PipelineTransformer(Transformer):
 
 
 parser = Lark(PIPELINE_GRAMMAR, parser="lalr", transformer=PipelineTransformer())
+
+
+def _apply_outer_limit(node: "PipelineComponent", limit: int) -> "PipelineComponent":
+    """Replace the outermost (final-output) limit of a subtree.
+
+    For a single :class:`SystemCall`, the limit replaces ``self.limit``.
+    For a :class:`CallSequence`, the limit replaces the limit of the last stage
+    (the stage that produces the final output).  For a
+    :class:`ParallelCallSequences`, the limit replaces the merger's limit.
+    """
+    if isinstance(node, SystemCall):
+        return SystemCall(name=node.name, alias=node.alias, limit=limit, role=node.role)
+    if isinstance(node, CallSequence):
+        new_stages = list(node.stages)
+        new_stages[-1] = _apply_outer_limit(new_stages[-1], limit)
+        seq = CallSequence.__new__(CallSequence)
+        seq.stages = new_stages
+        return seq
+    if isinstance(node, ParallelCallSequences):
+        new_merger = SystemCall(name=node.merger.name, alias=node.merger.alias, limit=limit, role="merger")
+        pcs = ParallelCallSequences.__new__(ParallelCallSequences)
+        pcs.sequences = node.sequences
+        pcs.merger = new_merger
+        pcs.expander = node.expander
+        return pcs
+    raise TypeError(f"Unexpected pipeline AST node type: {type(node).__name__}")
+
+
+def expand_aliases(node: "PipelineComponent", aliases: Dict[str, "PipelineComponent"]) -> "PipelineComponent":
+    """Substitute alias :class:`SystemCall` nodes with their pre-parsed bodies.
+
+    Walks the AST and, for each :class:`SystemCall` whose ``name`` is a key in
+    ``aliases``, replaces it with a deep copy of the corresponding alias body.
+    The original call's ``role`` is propagated into the substituted subtree via
+    :meth:`as_role`, and the original call's ``limit`` (when set) is applied to
+    the outermost (final-output) node via :func:`_apply_outer_limit`.
+
+    Merger and expander positions inside a :class:`ParallelCallSequences` are
+    leaf calls and are not substituted; aliases only apply at pipeline-stage
+    or parallel-branch positions.
+
+    Args:
+        node: AST root to expand.
+        aliases: Mapping of alias name to fully-expanded alias body AST.  When
+            empty, ``node`` is returned unchanged.
+
+    Returns:
+        A new AST with all alias references substituted.  The input is not
+        mutated.
+    """
+    if not aliases:
+        return node
+
+    if isinstance(node, SystemCall):
+        if node.name in aliases:
+            body = copy.deepcopy(aliases[node.name])
+            body = body.as_role(node.role)
+            if node.limit is not None:
+                body = _apply_outer_limit(body, node.limit)
+            return body
+        return node
+
+    if isinstance(node, CallSequence):
+        new_stages = [expand_aliases(s, aliases) for s in node.stages]
+        seq = CallSequence.__new__(CallSequence)
+        seq.stages = new_stages
+        return seq
+
+    if isinstance(node, ParallelCallSequences):
+        new_sequences = [expand_aliases(s, aliases) for s in node.sequences]
+        pcs = ParallelCallSequences.__new__(ParallelCallSequences)
+        pcs.sequences = new_sequences
+        pcs.merger = node.merger
+        pcs.expander = node.expander
+        return pcs
+
+    raise TypeError(f"Unexpected pipeline AST node type: {type(node).__name__}")

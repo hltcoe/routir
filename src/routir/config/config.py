@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ServiceConfig(BaseModel):
@@ -204,10 +204,29 @@ class Config(BaseModel):
         dynamic_pipeline (bool): When ``True`` (default), the ``/pipeline``
             endpoint accepts arbitrary pipeline DSL strings at request time.
             Set to ``False`` to restrict the server to pre-defined services only.
+        pipeline_aliases (dict[str, str]): Named shortcuts for pipeline DSL
+            fragments.  An alias is a single identifier that expands to a
+            (possibly multi-stage) pipeline at request time.  Aliases may
+            reference other aliases; cycles raise an error at startup.  Each
+            alias name must not collide with any service or collection name.
+
+            Example::
+
+                {
+                    "ragtime2":    "{zho%100, rus%100, spa%100, eng%100}ScoreFusion",
+                    "ragtime2-rr": "ragtime2%100 >> nemotron%20"
+                }
+
+            With these aliases, ``ragtime2%20`` expands to
+            ``{zho%100, rus%100, spa%100, eng%100}ScoreFusion%20`` (the
+            call-site limit is applied to the last stage of the alias body).
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     services: List[ServiceConfig] = Field(default_factory=list)
     collections: List[CollectionConfig] = Field(default_factory=list)
     server_imports: List[str] = Field(default_factory=list)  # not yet implemented
     file_imports: List[str] = Field(default_factory=list)
     dynamic_pipeline: bool = True
+    pipeline_aliases: Dict[str, str] = Field(default_factory=dict)
