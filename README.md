@@ -45,6 +45,16 @@ uvx --with transformers --with torch routir config.json
 Use `--with` to specify additional packages that you may need for serving the model. 
 Please refer to `uv` [documentation](https://docs.astral.sh/uv/) for more information. 
 
+### Authentication
+
+To protect the endpoint, set a Bearer token with `--api_key` (or the `ROUTIR_API_KEY` environment variable — preferred, since CLI args are visible in `ps`):
+
+```bash
+ROUTIR_API_KEY=sekret routir config.json --port 5000
+```
+
+When set, every request must carry an `Authorization: Bearer <token>` header. `/ping` stays open so liveness probes don't need credentials. When unset, the server accepts unauthenticated requests as before.
+
 
 ## Configuration
 

@@ -36,6 +36,22 @@ You can also use ``uvx`` to let ``uv`` creates a virtual environment on the fly 
 
 Use ``--with`` to specify additional packages that you may need for serving the model.
 
+Authentication
+--------------
+
+To protect the endpoint, set a Bearer token with ``--api_key`` (or the
+``ROUTIR_API_KEY`` environment variable — preferred, since CLI arguments
+are visible in ``ps``):
+
+.. code-block:: bash
+
+   ROUTIR_API_KEY=sekret routir config.json --port 5000
+
+When set, every request must carry an ``Authorization: Bearer <token>``
+header. The ``/ping`` endpoint stays open so liveness probes don't need
+credentials. When unset, the server accepts unauthenticated requests as
+before.
+
 Configuration
 -------------
 

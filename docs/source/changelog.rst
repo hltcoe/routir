@@ -7,6 +7,9 @@ Version 0.0.2
 -------------
 
 - Support for arbitrary sentence-transformers models using SentenceTransformerEngine
+- Pre-defined ``pipeline_aliases`` in the config: name common pipeline DSL fragments and reuse them at request time
+- ``--api_key`` (or ``ROUTIR_API_KEY`` env var) enables Bearer-token authentication on all endpoints except ``/ping``
+- ``collection`` field is optional on ``/pipeline``; required only when the pipeline contains a reranking stage
 
 Version 0.0.1
 -------------

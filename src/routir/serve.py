@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import hmac
 import os
 import subprocess
 from importlib.metadata import PackageNotFoundError, version
@@ -55,6 +56,11 @@ if os.environ.get("CORS_ALLOWED", "False") == "True":
     app = cors(app, allow_origin="*")
 
 config = None
+api_key: str = None  # universal Bearer token; None disables auth
+
+# Paths that bypass Bearer auth even when an API key is configured.
+# `/ping` stays open so liveness probes don't need to carry credentials.
+_AUTH_EXEMPT_PATHS = {"/ping"}
 
 
 @app.before_serving
@@ -62,6 +68,19 @@ async def startup():
     """Initialize resources before the server starts."""
     global config
     await load_config(config)
+
+
+@app.before_request
+async def _check_bearer_auth():
+    """Reject requests missing or carrying a wrong Bearer token, when configured."""
+    if api_key is None or request.path in _AUTH_EXEMPT_PATHS:
+        return None
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"error": "missing or invalid Authorization header"}), 401
+    if not hmac.compare_digest(auth_header[len("Bearer "):].strip(), api_key):
+        return jsonify({"error": "invalid API key"}), 401
+    return None
 
 
 # TODO: standardize the API format with pydantic
@@ -319,19 +338,29 @@ def main():
         --port: TCP port to listen on (default 5000).
         --host: Interface to bind (default ``0.0.0.0`` for all interfaces).
         --cache_dir: Directory for local cache files (default ``./.cache``).
+        --api_key: Bearer token required on every request (except ``/ping``).
+            When unset, the server accepts unauthenticated requests.  Falls
+            back to the ``ROUTIR_API_KEY`` env var, which is preferred since
+            CLI arguments are visible in process listings.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str)
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--cache_dir", type=str, default="./.cache")
+    parser.add_argument("--api_key", type=str, default=os.environ.get("ROUTIR_API_KEY"))
 
     args = parser.parse_args()
 
     _print_banner()
 
-    global config
+    global config, api_key
     config = args.config
+    api_key = args.api_key
+    if api_key:
+        logger.info("Bearer-token authentication enabled")
+    else:
+        logger.warning("No --api_key set; server will accept unauthenticated requests")
 
     # app.run(host=args.host, port=args.port, use_reloader=False)
     hypercorn_config = Config()
