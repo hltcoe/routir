@@ -72,8 +72,14 @@ async def startup():
 
 @app.before_request
 async def _check_bearer_auth():
-    """Reject requests missing or carrying a wrong Bearer token, when configured."""
-    if api_key is None or request.path in _AUTH_EXEMPT_PATHS:
+    """Reject requests missing or carrying a wrong Bearer token, when configured.
+
+    CORS preflight ``OPTIONS`` requests are exempt: browsers cannot attach
+    an ``Authorization`` header on preflights, and the CORS layer needs to
+    respond with the appropriate headers so the browser will send the real
+    request.
+    """
+    if api_key is None or request.method == "OPTIONS" or request.path in _AUTH_EXEMPT_PATHS:
         return None
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
