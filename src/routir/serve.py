@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import hmac
 import os
+import signal
 import subprocess
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -12,7 +13,7 @@ from quart import Quart, jsonify, request
 
 from .config.load import load_config
 from .pipeline import PipelineAliasRegistry, SearchPipeline
-from .processors import ProcessorRegistry
+from .processors import ProcessorRegistry, ServiceNotFound
 from .utils import logger
 
 
@@ -130,10 +131,10 @@ async def process_query():
             return jsonify({"error": "No data provided"}), 400
 
         service = data.pop("service")
-        if not ProcessorRegistry.has_service(service, "search"):
-            return jsonify({"error": f"Service '{service}' not found or does not support search"}), 400
-
-        result = await ProcessorRegistry.get(service, "search").submit(data)
+        try:
+            result = await ProcessorRegistry.submit(service, "search", data)
+        except ServiceNotFound as e:
+            return jsonify({"error": str(e)}), 400
         return jsonify(result)
 
     except Exception as e:
@@ -178,10 +179,10 @@ async def process_scoring():
             return jsonify({"error": "No data provided"}), 400
 
         service = data.pop("service")
-        if not ProcessorRegistry.has_service(service, "score"):
-            return jsonify({"error": f"Service '{service}' not found or does not support scoring"}), 400
-
-        result = await ProcessorRegistry.get(service, "score").submit(data)
+        try:
+            result = await ProcessorRegistry.submit(service, "score", data)
+        except ServiceNotFound as e:
+            return jsonify({"error": str(e)}), 400
         return jsonify(result)
 
     except Exception as e:
@@ -220,11 +221,13 @@ async def process_get_content():
         if not data or "id" not in data:
             return jsonify({"error": "No id provided"}), 400
 
-        if not ProcessorRegistry.has_service(data["collection"], "content"):
-            return jsonify({"error": f"Collection '{data['collection']}' not found"}), 400
-
-        result = await ProcessorRegistry.get(data["collection"], "content").submit(data)
-        return jsonify({**data, **result}), 400 if "error" in result else 200
+        try:
+            result = await ProcessorRegistry.submit(data["collection"], "content", data)
+        except ServiceNotFound as e:
+            return jsonify({"error": str(e)}), 400
+        if "error" in result:
+            return jsonify({"error": result["error"]}), 400
+        return jsonify(result), 200
 
     except Exception as e:
         logger.exception("Error in /content")
@@ -254,19 +257,19 @@ async def process_pipeline():
     service.  ``runtime_kwargs`` is optional and maps pipeline aliases to
     extra per-stage parameters.
 
-    **Response** (200 OK) — same fields as ``/search`` plus the echoed
-    request fields:
+    **Response** (200 OK):
 
     .. code-block:: json
 
         {
-            "pipeline":   "bm25%100 >> my-reranker%20",
-            "collection": "my-corpus",
-            "query":      "what is machine learning?",
-            "scores":     {"doc1": 0.95, "doc2": 0.82},
-            "cached":     false,
-            "timestamp":  1700000000.0
+            "query":     "what is machine learning?",
+            "scores":    {"doc1": 0.95, "doc2": 0.82},
+            "cached":    false,
+            "timestamp": 1700000000.0
         }
+
+    ``expanded_queries`` is included when the pipeline contains a query
+    decomposition stage.
 
     Returns 400 for missing required fields or DSL/service errors; 500 for
     unexpected errors.
@@ -290,7 +293,7 @@ async def process_pipeline():
             return jsonify({"error": str(e)}), 400
 
         result = await pipeline.run(data["query"])
-        return jsonify({**data, **result}), 200
+        return jsonify(result), 200
 
     except Exception as e:
         logger.exception("Error in /pipeline")
@@ -329,6 +332,85 @@ async def get_avail_service():
     })
 
 
+async def _build_grpc_server(args, api_key):
+    """Build a gRPC asyncio server with RoutIR interceptors and servicer.
+
+    Lazy-imports :mod:`grpc` and the servicer module so the base install
+    (no ``[grpc]`` extra) keeps working when ``--grpc`` is not set.
+    """
+    import grpc
+
+    from .grpc_interceptors import _BearerAuthInterceptor, _RequestIdInterceptor
+    from .proto._generated import routir_pb2_grpc
+    from .servicer import RoutirServicer
+
+    max_bytes = args.grpc_max_message_mb * 1024 * 1024
+    options = [
+        ("grpc.max_send_message_length", max_bytes),
+        ("grpc.max_receive_message_length", max_bytes),
+    ]
+    interceptors = [_RequestIdInterceptor()]
+    if api_key is not None:
+        interceptors.append(_BearerAuthInterceptor(api_key))
+
+    server = grpc.aio.server(options=options, interceptors=interceptors)
+    routir_pb2_grpc.add_RoutirServicer_to_server(RoutirServicer(), server)
+    server.add_insecure_port(f"{args.host}:{args.grpc_port}")
+    return server
+
+
+def _install_signal_handlers(grpc_server, shutdown_event):
+    """Install loop-level SIGINT/SIGTERM handlers that drain both transports.
+
+    When gRPC is enabled we take over signal handling so Hypercorn does not
+    install its own (and so we can also stop the gRPC server).  The shared
+    ``shutdown_event`` is passed to :func:`hypercorn.asyncio.serve` as its
+    ``shutdown_trigger`` so REST drains cleanly when the event fires.
+    In-flight gRPC RPCs get a 5-second grace window.
+
+    ``loop.add_signal_handler`` raises ``NotImplementedError`` on Windows,
+    so the call is wrapped defensively.
+    """
+    loop = asyncio.get_running_loop()
+
+    def _shutdown():
+        if shutdown_event.is_set():
+            return
+        logger.info("Signal received; stopping gRPC server (grace=5s) and draining REST")
+        shutdown_event.set()
+        # Fire-and-forget; the wait_for_termination task will then complete.
+        asyncio.create_task(grpc_server.stop(grace=5.0))
+
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(sig, _shutdown)
+        except NotImplementedError:
+            # add_signal_handler is unavailable on Windows; best-effort only.
+            pass
+
+
+async def _serve_all(app, hypercorn_config, args, api_key):
+    """Run REST (always) and optionally gRPC on the same event loop."""
+    if not args.grpc:
+        # REST-only path: behavior is unchanged from before --grpc existed.
+        await serve(app, hypercorn_config)
+        return
+
+    # gRPC enabled: we control signal handling, and pass a shutdown_trigger
+    # to Hypercorn so it does not install its own handlers.
+    shutdown_event = asyncio.Event()
+    rest_task = asyncio.create_task(
+        serve(app, hypercorn_config, shutdown_trigger=shutdown_event.wait)
+    )
+
+    grpc_server = await _build_grpc_server(args, api_key)
+    await grpc_server.start()
+    logger.info(f"gRPC listening on {args.host}:{args.grpc_port}")
+    grpc_task = asyncio.create_task(grpc_server.wait_for_termination())
+    _install_signal_handlers(grpc_server, shutdown_event)
+    await asyncio.gather(rest_task, grpc_task)
+
+
 def main():
     """
     CLI entry point: parse arguments and start the Hypercorn ASGI server.
@@ -348,6 +430,11 @@ def main():
             When unset, the server accepts unauthenticated requests.  Falls
             back to the ``ROUTIR_API_KEY`` env var, which is preferred since
             CLI arguments are visible in process listings.
+        --grpc: When set, additionally start a gRPC server on the same event
+            loop.  Off by default; the REST-only path is unchanged.
+        --grpc-port: TCP port for the gRPC server (default 50051).
+        --grpc-max-message-mb: Cap on inbound and outbound gRPC message size
+            in megabytes (default 64).
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str)
@@ -355,6 +442,12 @@ def main():
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--cache_dir", type=str, default="./.cache")
     parser.add_argument("--api_key", type=str, default=os.environ.get("ROUTIR_API_KEY"))
+    parser.add_argument("--grpc", action="store_true", default=False,
+                        help="Also start a gRPC server alongside REST.")
+    parser.add_argument("--grpc-port", type=int, default=50051,
+                        help="TCP port for the gRPC server (default 50051).")
+    parser.add_argument("--grpc-max-message-mb", type=int, default=64,
+                        help="Cap on gRPC send/receive message size in MB (default 64).")
 
     args = parser.parse_args()
 
@@ -373,7 +466,8 @@ def main():
     hypercorn_config.bind = [f"{args.host}:{args.port}"]
     hypercorn_config.startup_timeout = 600
     # hypercorn_config.keep_alive_timeout = 600
-    asyncio.run(serve(app, hypercorn_config))
+    logger.info(f"REST listening on {args.host}:{args.port}")
+    asyncio.run(_serve_all(app, hypercorn_config, args, api_key))
 
 
 if __name__ == "__main__":

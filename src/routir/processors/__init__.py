@@ -7,5 +7,5 @@ Provides both async and batch processing implementations with caching support.
 from .abstract import BatchProcessor, LRUCache, Processor
 from .content_processors import ContentProcessor
 from .query_processors import AsyncQueryProcessor, BatchDecomposeQueryProcessor, BatchQueryProcessor
-from .registry import ProcessorRegistry, auto_register
+from .registry import ProcessorRegistry, ServiceNotFound, auto_register
 from .score_processors import AsyncPairwiseScoreProcessor, BatchPairwiseScoreProcessor

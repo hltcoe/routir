@@ -55,6 +55,43 @@ ROUTIR_API_KEY=sekret routir config.json --port 5000
 
 When set, every request must carry an `Authorization: Bearer <token>` header. `/ping` stays open so liveness probes don't need credentials. When unset, the server accepts unauthenticated requests as before.
 
+### gRPC (optional)
+
+In addition to the REST HTTP API, RoutIR can serve the same operations over gRPC for lower per-request overhead — especially useful for server-to-server traffic (e.g. relayed services in a distributed cluster). Install the extra and start the server with `--grpc`:
+
+```bash
+pip install "routir[grpc]"
+routir config.json --port 5000 --grpc --grpc-port 50051
+```
+
+REST and gRPC run as **two separate listeners** in the same process and share the same in-process service registry, cache, and `--api_key`. The flags:
+
+- `--grpc` — opt-in switch (off by default; REST-only behavior is identical to before this flag existed).
+- `--grpc-port` — gRPC TCP port (default `50051`).
+- `--grpc-max-message-mb` — cap on inbound/outbound gRPC message size in MB (default `64`).
+
+The proto contract lives at `src/routir/proto/routir.proto` (package `routir.v1`). RPCs mirror the REST endpoints 1:1 (`Ping`, `Avail`, `Search`, `Score`, `Content`, `Pipeline`); generated stubs are checked into `src/routir/proto/_generated/` so installers don't need `protoc`. Regenerate after editing the proto with `bash scripts/build_proto.sh` (requires `routir[dev]`).
+
+#### Sharing one external port via nginx
+
+REST and gRPC always bind to different in-process ports. If you need a single external port (e.g. HTTPS on `:443`), terminate TLS in nginx and route by path — gRPC requests target `/routir.v1.Routir/*`:
+
+```nginx
+server {
+    listen 443 ssl http2;
+
+    location /routir.v1.Routir/ {
+        grpc_pass grpc://localhost:50051;
+    }
+
+    location / {
+        proxy_pass http://localhost:5000;
+    }
+}
+```
+
+This is the recommended production setup. RoutIR itself stays plaintext; nginx terminates TLS for both transports.
+
 
 ## Configuration
 
@@ -234,6 +271,57 @@ Output:
 ```
 
 
+
+
+## Python Client
+
+For Python callers, the `routir.client` subpackage provides a typed client that hides the wire details. It defaults to gRPC when available and transparently falls back to REST otherwise — so the same client code works against any RoutIR endpoint regardless of how it's configured.
+
+```python
+from routir.client import AsyncClient
+
+async with AsyncClient(
+    endpoint="http://host:5000",      # REST base URL
+    grpc_endpoint="host:50051",       # optional; omit to skip gRPC
+    api_key="...",                    # optional Bearer token
+) as c:
+    print(c.transport)                # "grpc" or "rest"
+    r = await c.search(service="qwen3-neuclir", query="hello", limit=10)
+    s = await c.score(service="rank1", query="q", passages=["a", "b"])
+    p = await c.pipeline(
+        pipeline="{qwen3-neuclir, plaidx-neuclir}RRF%50 >> rank1",
+        query="who won the 2020 world series?",
+        collection="neuclir",
+    )
+```
+
+A synchronous wrapper is available for non-async callers:
+
+```python
+from routir.client import Client
+
+with Client(endpoint="http://host:5000", grpc_endpoint="host:50051") as c:
+    print(c.ping())
+```
+
+On the first call, an `AsyncClient` with `transport="auto"` (the default) probes the gRPC endpoint once. If reachable, it commits to gRPC for the lifetime of the client; on `UNIMPLEMENTED`, channel errors, or a missing `grpcio` install it falls back to REST and logs a warning. `UNAUTHENTICATED` does **not** trigger fallback — credential problems are surfaced rather than silently masked.
+
+Retries are differentiated per transport: REST retries on connection errors and HTTP 5xx (not 4xx); gRPC retries on `UNAVAILABLE`, `DEADLINE_EXCEEDED`, `RESOURCE_EXHAUSTED`, and `ABORTED`. Both transports share the same `timeout`, `retries`, and `api_key` settings.
+
+See `examples/client_tutorial.ipynb` for a walkthrough.
+
+The same client powers RoutIR's own server-to-server `Relay` engine, so `server_imports` entries can declare a `grpc_endpoint` to use gRPC for inter-server traffic:
+
+```json
+{
+    "server_imports": [
+        {"endpoint": "http://compute01:5000", "grpc_endpoint": "compute01:50051"},
+        "http://compute02:5000"
+    ]
+}
+```
+
+Plain strings (REST-only) are still accepted and behave as before.
 
 
 ## Extension Examples

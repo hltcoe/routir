@@ -42,12 +42,23 @@ gpu = ["faiss-gpu", "torch"]
 plaidx = ["plaid-x"]
 sparse = ["pyjnius==1.6.1", "bsparse"]
 vllm = ["vllm", "torch", "transformers"]
+grpc = ["grpcio>=1.60", "protobuf>=4.25"]
+dev = ["grpcio-tools>=1.60", "pytest>=7.0", "pytest-asyncio>=0.21"]
 docs = [
     "sphinx>=4.0",
     "sphinx-rtd-theme>=0.5",
     "myst-parser>=0.18",
 ]
 
+[tool.setuptools.package-data]
+"routir.proto" = ["*.proto"]
+"routir.proto._generated" = ["*.pyi"]
+
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["src"]
+testpaths = ["tests"]
 
 # mypy configuration
 [tool.mypy]

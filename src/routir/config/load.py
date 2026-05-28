@@ -1,9 +1,8 @@
 import asyncio
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Union
 
-import aiohttp
-
+from ..client import AsyncClient
 from ..models import Engine, Relay
 from ..pipeline import PipelineAliasRegistry
 from ..processors import (
@@ -15,56 +14,75 @@ from ..processors import (
     Processor,
     ProcessorRegistry,
 )
-from ..utils import logger, session_request
+from ..utils import logger
 from ..utils.extensions import load_all_extensions
 from .config import Config
 
 
-async def auto_add_relay_services(servers: List[str]):
+def _normalize_server(s: Union[str, Dict[str, str]]) -> Dict[str, str]:
+    if isinstance(s, str):
+        return {"endpoint": s}
+    if isinstance(s, dict) and "endpoint" in s:
+        return s
+    raise ValueError(f"Bad server entry: {s!r}; expected str or dict with 'endpoint'")
+
+
+async def auto_add_relay_services(servers: Union[str, List[Union[str, Dict[str, str]]]]):
     """
     Discover and register services from remote RoutIR servers as local proxies.
 
-    Queries each server's ``/avail`` endpoint to list its available services,
-    then creates :class:`~routir.models.Relay`-backed processors for every
-    service not already registered locally.  This lets the local server
-    transparently forward requests to the remote server.
+    Queries each server's ``/avail`` endpoint (via :class:`AsyncClient`) to list
+    its available services, then creates :class:`~routir.models.Relay`-backed
+    processors for every service not already registered locally.  This lets the
+    local server transparently forward requests to the remote server.
 
     Only ``"search"`` and ``"score"`` service types are proxied.  Services
     already registered locally take precedence (remote services with the same
     name are skipped).
 
     Args:
-        servers (list[str]): Base URLs of remote RoutIR servers to import from,
-            e.g. ``["http://gpu-host-1:5000", "http://gpu-host-2:5000"]``.
-            A single string is also accepted.
+        servers: Either a single server entry or a list of entries.  Each entry
+            may be a string (REST base URL, e.g. ``"http://host:5000"``) or a
+            dict with at least ``"endpoint"`` and optionally ``"grpc_endpoint"``,
+            ``"api_key"``, etc.  These extra fields are forwarded into the
+            created :class:`~routir.models.Relay` config so the data plane can
+            use gRPC even though discovery always uses REST.
     """
-    if isinstance(servers, str):
+    if isinstance(servers, (str, dict)):
         servers = [servers]
+    servers = [_normalize_server(s) for s in servers]
 
-    async with aiohttp.ClientSession() as session:
-        resps = await asyncio.gather(
-            *[session_request(session, url=f"{server}/avail", method="GET") for server in servers]
-        )
+    async def _fetch_avail(entry: Dict[str, str]):
+        async with AsyncClient(endpoint=entry["endpoint"], transport="rest") as c:
+            try:
+                return await c.avail()
+            except Exception as e:
+                logger.exception(f"Failed to fetch /avail from {entry['endpoint']}: {e}")
+                return None
+
+    resps = await asyncio.gather(*[_fetch_avail(s) for s in servers])
 
     # ensure backward compatible
     avail_services = {
-        server: {
+        i: {
             "search": resp['search'] if 'search' in resp else resp['query'],
             "score": resp['score']
         }
-        for server, resp in zip(servers, resps)
+        for i, resp in enumerate(resps)
         if resp is not None
     }
 
-    for server in avail_services:
+    for i, types in avail_services.items():
+        entry = servers[i]
         for service_type, processor_cls in zip(["search", "score"], [AsyncQueryProcessor, AsyncPairwiseScoreProcessor]):
-            for service_name in avail_services[server][service_type]:
+            for service_name in types[service_type]:
                 if ProcessorRegistry.has_service(service_name, service_type):
                     continue
-                logger.info(f"Adding auto Relay to {server} for service `{service_name}` of type {service_type}")
-                processor = processor_cls(
-                    engine=Relay(name=service_name, config={"endpoint": server, "service": service_name})
+                logger.info(
+                    f"Adding auto Relay to {entry['endpoint']} for service `{service_name}` of type {service_type}"
                 )
+                relay_config = {"service": service_name, **entry}
+                processor = processor_cls(engine=Relay(name=service_name, config=relay_config))
                 await processor.start()
                 ProcessorRegistry.register(service_name, service_type, processor)
 

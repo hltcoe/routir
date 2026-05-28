@@ -226,7 +226,12 @@ class Config(BaseModel):
 
     services: List[ServiceConfig] = Field(default_factory=list)
     collections: List[CollectionConfig] = Field(default_factory=list)
-    server_imports: List[str] = Field(default_factory=list)  # not yet implemented
+    # Each entry is either a REST URL string or a dict like
+    # ``{"endpoint": "http://...", "grpc_endpoint": "host:50051", ...}``.
+    # Extra fields (``grpc_endpoint``, ``api_key``, etc.) are passed through
+    # to the auto-created :class:`~routir.models.Relay` config so the data
+    # plane can use gRPC even though discovery always uses REST.
+    server_imports: List[Union[str, Dict[str, Any]]] = Field(default_factory=list)
     file_imports: List[str] = Field(default_factory=list)
     dynamic_pipeline: bool = True
     pipeline_aliases: Dict[str, str] = Field(default_factory=dict)

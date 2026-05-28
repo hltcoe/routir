@@ -12,6 +12,19 @@ _uncallable_service_types = {"content"}
 _output_keys = {"search": "scores", "score": "scores", "decompose_query": "queries", "fuse": "scores"}
 
 
+class ServiceNotFound(KeyError):
+    """Raised when a (name, service_type) combo is not registered.
+
+    KeyError so existing code that catches KeyError still works, but the
+    distinct type lets transport layers map cleanly to HTTP 400 / gRPC NOT_FOUND.
+    """
+
+    def __str__(self) -> str:
+        # KeyError wraps its message in repr() quotes by default; override so
+        # str(e) yields the plain message that REST/gRPC surface to callers.
+        return self.args[0] if self.args else ""
+
+
 class _ProcessorRegistry:
     """
     Global registry for all processors and services.
@@ -65,6 +78,13 @@ class _ProcessorRegistry:
         """Get a processor by service name and type."""
         if self.has_service(name, service_type):
             return self.all_services[name][service_type]
+
+    async def submit(self, name: str, service_type: str, data: dict) -> dict:
+        if not self.has_service(name, service_type):
+            raise ServiceNotFound(
+                f"Service '{name}' not found or does not support {service_type}"
+            )
+        return await self.get(name, service_type).submit(data)
 
     def get_all_services(self):
         """

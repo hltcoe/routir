@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package routir.v1;
+
+import "google/protobuf/struct.proto";
+
+service Routir {
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc Avail(AvailRequest) returns (AvailResponse);
+  rpc Search(SearchRequest) returns (SearchResponse);
+  rpc Score(ScoreRequest) returns (ScoreResponse);
+  rpc Content(ContentRequest) returns (ContentResponse);
+  rpc Pipeline(PipelineRequest) returns (PipelineResponse);
+  // RPC slots reserved for v2 streaming -- do not implement now:
+  // rpc ScoreStream(stream ScoreChunk) returns (stream ScoreResult);
+  // rpc PipelineStream(PipelineRequest) returns (stream PipelineResponse);
+}
+
+message PingRequest {}
+
+message PingResponse {
+  string status = 1;
+}
+
+message AvailRequest {}
+
+message StringList {
+  repeated string items = 1;
+}
+
+message AvailResponse {
+  map<string, StringList> services = 1;
+  map<string, string> pipeline_aliases = 2;
+}
+
+message SearchRequest {
+  string service = 1;
+  string query = 2;
+  optional int32 limit = 3;
+  optional string subset = 4;
+  optional string instruction = 5;
+  google.protobuf.Struct extras = 6;
+}
+
+message SearchResponse {
+  string query = 1;
+  map<string, double> scores = 2;
+  string service = 3;
+  bool cached = 4;
+  double timestamp = 5;
+}
+
+message ScoreRequest {
+  string service = 1;
+  string query = 2;
+  repeated string passages = 3;
+  optional string prompt = 4;
+  google.protobuf.Struct extras = 5;
+}
+
+message ScoreMeta {
+  int32 n_passages = 1;
+}
+
+message ScoreResponse {
+  string query = 1;
+  repeated double scores = 2;
+  string service = 3;
+  bool cached = 4;
+  double timestamp = 5;
+  ScoreMeta meta = 6;
+}
+
+message ContentRequest {
+  string collection = 1;
+  string id = 2;
+}
+
+message ContentResponse {
+  string collection = 1;
+  string id = 2;
+  string text = 3;
+  bool cached = 4;
+  double timestamp = 5;
+}
+
+message PipelineRequest {
+  string pipeline = 1;
+  string query = 2;
+  optional string collection = 3;
+  map<string, google.protobuf.Struct> runtime_kwargs = 4;
+}
+
+message PipelineResponse {
+  string query = 1;
+  map<string, double> scores = 2;
+  repeated string expanded_queries = 3;
+  bool cached = 4;
+  double timestamp = 5;
+}
