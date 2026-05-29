@@ -31,6 +31,9 @@ message StringList {
 message AvailResponse {
   map<string, StringList> services = 1;
   map<string, string> pipeline_aliases = 2;
+  // Port the gRPC server is listening on, when --grpc is enabled.
+  // Clients can use this to auto-discover gRPC when only the REST URL is known.
+  optional int32 grpc_port = 3;
 }
 
 message SearchRequest {

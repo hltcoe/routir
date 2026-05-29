@@ -11,6 +11,10 @@ from .utils import logger
 class RoutirServicer(pb_grpc.RoutirServicer):
     """gRPC servicer mirroring the REST surface in :mod:`routir.serve`."""
 
+    def __init__(self, grpc_port: int = None):
+        # Surfaced in Avail so REST-only clients can auto-discover gRPC.
+        self._grpc_port = grpc_port
+
     async def Ping(self, request, context):
         return pb.PingResponse(status="pong")
 
@@ -18,9 +22,13 @@ class RoutirServicer(pb_grpc.RoutirServicer):
         try:
             services_dict = ProcessorRegistry.get_all_services()
             aliases = PipelineAliasRegistry.source
+            kwargs = {}
+            if self._grpc_port is not None:
+                kwargs["grpc_port"] = self._grpc_port
             return pb.AvailResponse(
                 services={role: pb.StringList(items=list(names)) for role, names in services_dict.items()},
                 pipeline_aliases=dict(aliases),
+                **kwargs,
             )
         except Exception as e:
             logger.exception("gRPC Avail failed")

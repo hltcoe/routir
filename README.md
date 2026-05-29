@@ -304,7 +304,17 @@ with Client(endpoint="http://host:5000", grpc_endpoint="host:50051") as c:
     print(c.ping())
 ```
 
+The first positional argument routes by URL scheme: `http://`/`https://` go to the REST slot, `grpc://`/`grpcs://` to the gRPC slot. Either is enough on its own:
+
+```python
+AsyncClient("grpc://host:50051")          # gRPC only
+AsyncClient("http://host:5000")           # REST only (or auto-discovers gRPC — see below)
+AsyncClient("https://routir.example.com") # REST over TLS via reverse proxy
+```
+
 On the first call, an `AsyncClient` with `transport="auto"` (the default) probes the gRPC endpoint once. If reachable, it commits to gRPC for the lifetime of the client; on `UNIMPLEMENTED`, channel errors, or a missing `grpcio` install it falls back to REST and logs a warning. `UNAUTHENTICATED` does **not** trigger fallback — credential problems are surfaced rather than silently masked.
+
+**Auto-discovery.** When only a plain `http://` REST URL is supplied, the client queries `/avail` once on first use; if the server is running with `--grpc`, it advertises its `grpc_port` there, and the client switches itself to gRPC (logging a warning). Pass `transport="rest"` to opt out. This is skipped for `https://` URLs because the advertised port isn't externally reachable in a reverse-proxy deployment.
 
 Retries are differentiated per transport: REST retries on connection errors and HTTP 5xx (not 4xx); gRPC retries on `UNAVAILABLE`, `DEADLINE_EXCEEDED`, `RESOURCE_EXHAUSTED`, and `ABORTED`. Both transports share the same `timeout`, `retries`, and `api_key` settings.
 

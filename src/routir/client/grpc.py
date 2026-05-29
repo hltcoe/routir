@@ -199,6 +199,8 @@ class GrpcTransport(Transport):
         resp = await self._call(self._stub.Avail, pb.AvailRequest())
         out = {role: list(sl.items) for role, sl in resp.services.items()}
         out["pipeline_aliases"] = dict(resp.pipeline_aliases)
+        if resp.HasField("grpc_port"):
+            out["grpc_port"] = resp.grpc_port
         return out
 
     async def search(self, payload: dict) -> dict:

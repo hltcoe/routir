@@ -58,6 +58,7 @@ if os.environ.get("CORS_ALLOWED", "False") == "True":
 
 config = None
 api_key: str = None  # universal Bearer token; None disables auth
+grpc_port_advertised: int = None  # set by main() when --grpc is on; surfaced via /avail
 
 # Paths that bypass Bearer auth even when an API key is configured.
 # `/ping` stays open so liveness probes don't need to carry credentials.
@@ -326,10 +327,13 @@ async def get_avail_service():
     Used by :func:`~routir.config.load.auto_add_relay_services` to discover
     services on remote servers.
     """
-    return jsonify({
+    payload = {
         **ProcessorRegistry.get_all_services(),
         "pipeline_aliases": PipelineAliasRegistry.source,
-    })
+    }
+    if grpc_port_advertised is not None:
+        payload["grpc_port"] = grpc_port_advertised
+    return jsonify(payload)
 
 
 async def _build_grpc_server(args, api_key):
@@ -354,7 +358,7 @@ async def _build_grpc_server(args, api_key):
         interceptors.append(_BearerAuthInterceptor(api_key))
 
     server = grpc.aio.server(options=options, interceptors=interceptors)
-    routir_pb2_grpc.add_RoutirServicer_to_server(RoutirServicer(), server)
+    routir_pb2_grpc.add_RoutirServicer_to_server(RoutirServicer(grpc_port=args.grpc_port), server)
     server.add_insecure_port(f"{args.host}:{args.grpc_port}")
     return server
 
@@ -453,9 +457,11 @@ def main():
 
     _print_banner()
 
-    global config, api_key
+    global config, api_key, grpc_port_advertised
     config = args.config
     api_key = args.api_key
+    if args.grpc:
+        grpc_port_advertised = args.grpc_port
     if api_key:
         logger.info("Bearer-token authentication enabled")
     else:

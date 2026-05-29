@@ -28,7 +28,7 @@ class StringList(_message.Message):
     def __init__(self, items: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class AvailResponse(_message.Message):
-    __slots__ = ("services", "pipeline_aliases")
+    __slots__ = ("services", "pipeline_aliases", "grpc_port")
     class ServicesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -45,9 +45,11 @@ class AvailResponse(_message.Message):
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     SERVICES_FIELD_NUMBER: _ClassVar[int]
     PIPELINE_ALIASES_FIELD_NUMBER: _ClassVar[int]
+    GRPC_PORT_FIELD_NUMBER: _ClassVar[int]
     services: _containers.MessageMap[str, StringList]
     pipeline_aliases: _containers.ScalarMap[str, str]
-    def __init__(self, services: _Optional[_Mapping[str, StringList]] = ..., pipeline_aliases: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    grpc_port: int
+    def __init__(self, services: _Optional[_Mapping[str, StringList]] = ..., pipeline_aliases: _Optional[_Mapping[str, str]] = ..., grpc_port: _Optional[int] = ...) -> None: ...
 
 class SearchRequest(_message.Message):
     __slots__ = ("service", "query", "limit", "subset", "instruction", "extras")
