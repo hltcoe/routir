@@ -1,9 +1,11 @@
 import asyncio
+import json
 from typing import Any, Dict, List, Optional
 
 from ..processors.registry import ProcessorRegistry
 from ..utils import dict_topk, logger
 from .aliases import PipelineAliasRegistry
+from .cache import get_pipeline_cache
 from .parser import CallSequence, ParallelCallSequences, PipelineComponent, SystemCall, expand_aliases, parser
 
 
@@ -68,8 +70,11 @@ class SearchPipeline:
     """
 
     def __init__(
-        self, pipeline: PipelineComponent, collection: Optional[str] = None,
-        runtime_kwargs: Dict[str, Dict[str, Any]] = None, verify: bool = True
+        self,
+        pipeline: PipelineComponent,
+        collection: Optional[str] = None,
+        runtime_kwargs: Dict[str, Dict[str, Any]] = None,
+        verify: bool = True,
     ):
         """
         Initialize search pipeline.
@@ -108,23 +113,20 @@ class SearchPipeline:
         """Verify that all required services exist in the registry."""
         if any(call.role == "rerank" for call in self.pipeline.all_calls):
             if not self.collection:
-                raise ValueError(
-                    "pipeline contains reranking stage(s) and requires a `collection` field"
-                )
+                raise ValueError("pipeline contains reranking stage(s) and requires a `collection` field")
             if not ProcessorRegistry.has_service(self.collection, "content"):
-                raise RuntimeError(
-                    f"Pipeline requires reranking but no content service found for collection '{self.collection}'"
-                )
+                raise RuntimeError(f"Pipeline requires reranking but no content service found for collection '{self.collection}'")
         for call in self.pipeline.all_calls:
             if not ProcessorRegistry.has_service(call.name, _role_to_service[call.role]):
-                raise RuntimeError(
-                    f"No {_role_to_service[call.role]} service registered under '{call.name}'"
-                )
+                raise RuntimeError(f"No {_role_to_service[call.role]} service registered under '{call.name}'")
 
     @classmethod
     def from_string(
-        cls, pipeline_string: str, collection: Optional[str] = None,
-        runtime_kwargs: Dict[str, Dict[str, Any]] = None, verify: bool = True
+        cls,
+        pipeline_string: str,
+        collection: Optional[str] = None,
+        runtime_kwargs: Dict[str, Dict[str, Any]] = None,
+        verify: bool = True,
     ) -> "SearchPipeline":
         """
         Create a pipeline from a DSL string.
@@ -158,6 +160,73 @@ class SearchPipeline:
         ast = parser.parse(pipeline_string)
         ast = expand_aliases(ast, PipelineAliasRegistry.expanded)
         return cls(ast, collection, runtime_kwargs, verify)
+
+    def _cache_key(self, query: str) -> str:
+        """Build the cache key for this pipeline + query.
+
+        The AST is canonicalised via the dataclass ``repr``, which is stable
+        across runs for identical inputs and ignores whitespace differences in
+        the original DSL string.  ``runtime_kwargs`` is filtered down to the
+        aliases that actually appear in the pipeline so that an unused key does
+        not poison the cache.
+        """
+        used_aliases = {c.alias for c in self.pipeline.all_calls}
+        filtered_kwargs = {k: v for k, v in self.runtime_kwargs.items() if k in used_aliases}
+        return json.dumps(
+            [repr(self.pipeline), query, self.collection, filtered_kwargs],
+            sort_keys=True,
+        )
+
+    @classmethod
+    async def cached_run(
+        cls,
+        pipeline_string: str,
+        query: str,
+        collection: Optional[str] = None,
+        runtime_kwargs: Dict[str, Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Run a pipeline with optional process-wide result caching.
+
+        Single entry point used by both REST (``/pipeline``) and gRPC
+        (``RoutirServicer.Pipeline``) handlers.  Behaviour:
+
+        1. Parse the DSL and construct a :class:`SearchPipeline`.  Any DSL or
+           verification error propagates to the caller unchanged.
+        2. If a pipeline cache is installed (see
+           :func:`routir.pipeline.cache.set_pipeline_cache`), look up the
+           result by canonical key.  On hit, return it with ``cached=True``
+           overriding any stage-level flag.
+        3. On miss, execute the pipeline; cache the response only when it has
+           no ``"error"`` key, mirroring :class:`~routir.processors.abstract.Processor`.
+
+        Args:
+            pipeline_string: Pipeline DSL string.
+            query: User query.
+            collection: Collection name for reranking stages.
+            runtime_kwargs: Optional per-alias extra parameters.
+
+        Returns:
+            Final pipeline result dict.  Includes a top-level ``cached`` flag
+            indicating whether the *pipeline-level* cache was hit (stage-level
+            cache flags are not surfaced when the pipeline cache is in use).
+        """
+        pipeline = cls.from_string(pipeline_string, collection, runtime_kwargs=runtime_kwargs)
+
+        cache = get_pipeline_cache()
+        cache_key = None
+        if cache is not None:
+            cache_key = pipeline._cache_key(query)
+            cached = await cache.get(cache_key)
+            if cached is not None:
+                return {**cached, "cached": True}
+
+        result = await pipeline.run(query)
+
+        if cache is not None and cache_key is not None and "error" not in result:
+            # eventually consistent; mirrors Processor.submit behaviour
+            asyncio.create_task(cache.put(cache_key, {**result, "cached": True}))
+
+        return {**result, "cached": False}
 
     async def get_doc_content(self, doc_id: str):
         """

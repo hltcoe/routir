@@ -32,11 +32,14 @@ def _get_version_info() -> str:
         pkg_version = "unknown"
     git_hash = None
     try:
-        git_hash = subprocess.check_output(
-            ["git", "-C", str(Path(__file__).resolve().parent), "rev-parse", "--short", "HEAD"],
-            stderr=subprocess.DEVNULL,
-            text=True,
-        ).strip() or None
+        git_hash = (
+            subprocess.check_output(
+                ["git", "-C", str(Path(__file__).resolve().parent), "rev-parse", "--short", "HEAD"],
+                stderr=subprocess.DEVNULL,
+                text=True,
+            ).strip()
+            or None
+        )
     except (FileNotFoundError, subprocess.CalledProcessError):
         pass
     return f"v{pkg_version} ({git_hash})" if git_hash else f"v{pkg_version}"
@@ -53,6 +56,7 @@ app = Quart(__name__)
 
 if os.environ.get("CORS_ALLOWED", "False") == "True":
     from quart_cors import cors
+
     logger.warning("CORS_ALLOWED=True")
     app = cors(app, allow_origin="*")
 
@@ -86,7 +90,7 @@ async def _check_bearer_auth():
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         return jsonify({"error": "missing or invalid Authorization header"}), 401
-    if not hmac.compare_digest(auth_header[len("Bearer "):].strip(), api_key):
+    if not hmac.compare_digest(auth_header[len("Bearer ") :].strip(), api_key):
         return jsonify({"error": "invalid API key"}), 401
     return None
 
@@ -285,15 +289,15 @@ async def process_pipeline():
                 return jsonify({"error": f"No {field} provided"}), 400
 
         try:
-            pipeline = SearchPipeline.from_string(
+            result = await SearchPipeline.cached_run(
                 data["pipeline"],
-                data.get("collection"),
+                data["query"],
+                collection=data.get("collection"),
                 runtime_kwargs=data.get("runtime_kwargs", {}),
             )
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
-        result = await pipeline.run(data["query"])
         return jsonify(result), 200
 
     except Exception as e:
@@ -403,9 +407,7 @@ async def _serve_all(app, hypercorn_config, args, api_key):
     # gRPC enabled: we control signal handling, and pass a shutdown_trigger
     # to Hypercorn so it does not install its own handlers.
     shutdown_event = asyncio.Event()
-    rest_task = asyncio.create_task(
-        serve(app, hypercorn_config, shutdown_trigger=shutdown_event.wait)
-    )
+    rest_task = asyncio.create_task(serve(app, hypercorn_config, shutdown_trigger=shutdown_event.wait))
 
     grpc_server = await _build_grpc_server(args, api_key)
     await grpc_server.start()
@@ -446,12 +448,11 @@ def main():
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--cache_dir", type=str, default="./.cache")
     parser.add_argument("--api_key", type=str, default=os.environ.get("ROUTIR_API_KEY"))
-    parser.add_argument("--grpc", action="store_true", default=False,
-                        help="Also start a gRPC server alongside REST.")
-    parser.add_argument("--grpc-port", type=int, default=50051,
-                        help="TCP port for the gRPC server (default 50051).")
-    parser.add_argument("--grpc-max-message-mb", type=int, default=64,
-                        help="Cap on gRPC send/receive message size in MB (default 64).")
+    parser.add_argument("--grpc", action="store_true", default=False, help="Also start a gRPC server alongside REST.")
+    parser.add_argument("--grpc-port", type=int, default=50051, help="TCP port for the gRPC server (default 50051).")
+    parser.add_argument(
+        "--grpc-max-message-mb", type=int, default=64, help="Cap on gRPC send/receive message size in MB (default 64)."
+    )
 
     args = parser.parse_args()
 

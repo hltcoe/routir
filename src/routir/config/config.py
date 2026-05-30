@@ -220,6 +220,31 @@ class Config(BaseModel):
             With these aliases, ``ragtime2%20`` expands to
             ``{zho%100, rus%100, spa%100, eng%100}ScoreFusion%20`` (the
             call-site limit is applied to the last stage of the alias body).
+        pipeline_cache (int): Capacity for the pipeline-level result cache
+            (number of entries).  ``-1`` (default) or ``0`` disables it.
+            When enabled, the ``/pipeline`` endpoint reuses the final response
+            for identical requests, keyed on the canonical AST of the pipeline
+            (after alias expansion), the query, the collection, and the subset
+            of ``runtime_kwargs`` that refer to aliases actually used.  Ignored
+            when ``pipeline_cache_redis_url`` is set.
+        pipeline_cache_ttl (int): Pipeline-cache entry TTL in seconds
+            (default 600).
+        pipeline_cache_redis_url (str, optional): Redis URL for the pipeline
+            cache.  When set, Redis replaces the in-memory LRU cache.
+        pipeline_cache_redis_kwargs (dict, optional): Extra kwargs forwarded
+            to the Redis client for the pipeline cache.
+        relay_content_cache (int): Capacity for the local cache that fronts
+            remote ``content`` services registered via ``server_imports``.
+            ``-1`` (default) or ``0`` disables it.  Without this cache,
+            reranking against a remote collection re-fetches every document
+            text on every query (the per-run ``doc_content_cache`` on
+            :class:`SearchPipeline` only dedupes within a single request).
+        relay_content_cache_ttl (int): TTL in seconds for the relay-content
+            cache (default 600).
+        relay_content_cache_redis_url (str, optional): Redis URL for the
+            relay-content cache.
+        relay_content_cache_redis_kwargs (dict, optional): Extra kwargs
+            forwarded to the Redis client for the relay-content cache.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -235,3 +260,13 @@ class Config(BaseModel):
     file_imports: List[str] = Field(default_factory=list)
     dynamic_pipeline: bool = True
     pipeline_aliases: Dict[str, str] = Field(default_factory=dict)
+
+    pipeline_cache: int = -1
+    pipeline_cache_ttl: int = 600
+    pipeline_cache_redis_url: Optional[str] = None
+    pipeline_cache_redis_kwargs: Dict[str, Any] = Field(default_factory=dict)
+
+    relay_content_cache: int = -1
+    relay_content_cache_ttl: int = 600
+    relay_content_cache_redis_url: Optional[str] = None
+    relay_content_cache_redis_kwargs: Dict[str, Any] = Field(default_factory=dict)

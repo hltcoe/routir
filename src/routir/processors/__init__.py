@@ -8,4 +8,5 @@ from .abstract import BatchProcessor, LRUCache, Processor
 from .content_processors import ContentProcessor
 from .query_processors import AsyncQueryProcessor, BatchDecomposeQueryProcessor, BatchQueryProcessor
 from .registry import ProcessorRegistry, ServiceNotFound, auto_register
+from .relay_content import RelayContentProcessor
 from .score_processors import AsyncPairwiseScoreProcessor, BatchPairwiseScoreProcessor

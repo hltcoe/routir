@@ -166,17 +166,16 @@ class RoutirServicer(pb_grpc.RoutirServicer):
             collection = request.collection if request.HasField("collection") else None
 
             try:
-                pipeline = SearchPipeline.from_string(
+                result = await SearchPipeline.cached_run(
                     request.pipeline,
-                    collection,
+                    request.query,
+                    collection=collection,
                     runtime_kwargs=runtime_kwargs,
                 )
             except (ValueError, RuntimeError) as e:
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
                 context.set_details(f"{type(e).__name__}: {e}")
                 return pb.PipelineResponse()
-
-            result = await pipeline.run(request.query)
 
             return pb.PipelineResponse(
                 query=result.get("query", request.query),

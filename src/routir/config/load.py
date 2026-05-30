@@ -1,10 +1,10 @@
 import asyncio
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from ..client import AsyncClient
 from ..models import Engine, Relay
-from ..pipeline import PipelineAliasRegistry
+from ..pipeline import PipelineAliasRegistry, set_pipeline_cache
 from ..processors import (
     AsyncPairwiseScoreProcessor,
     AsyncQueryProcessor,
@@ -13,7 +13,9 @@ from ..processors import (
     ContentProcessor,
     Processor,
     ProcessorRegistry,
+    RelayContentProcessor,
 )
+from ..processors.cache import LRUCache, RedisCache
 from ..utils import logger
 from ..utils.extensions import load_all_extensions
 from .config import Config
@@ -27,7 +29,10 @@ def _normalize_server(s: Union[str, Dict[str, str]]) -> Dict[str, str]:
     raise ValueError(f"Bad server entry: {s!r}; expected str or dict with 'endpoint'")
 
 
-async def auto_add_relay_services(servers: Union[str, List[Union[str, Dict[str, str]]]]):
+async def auto_add_relay_services(
+    servers: Union[str, List[Union[str, Dict[str, str]]]],
+    content_cache_settings: Optional[Dict[str, Any]] = None,
+):
     """
     Discover and register services from remote RoutIR servers as local proxies.
 
@@ -36,21 +41,27 @@ async def auto_add_relay_services(servers: Union[str, List[Union[str, Dict[str, 
     processors for every service not already registered locally.  This lets the
     local server transparently forward requests to the remote server.
 
-    Only ``"search"`` and ``"score"`` service types are proxied.  Services
-    already registered locally take precedence (remote services with the same
-    name are skipped).
+    ``"search"``, ``"score"``, and ``"content"`` service types are proxied.
+    Services already registered locally take precedence (remote services with
+    the same name are skipped).
 
     Args:
         servers: Either a single server entry or a list of entries.  Each entry
             may be a string (REST base URL, e.g. ``"http://host:5000"``) or a
             dict with at least ``"endpoint"`` and optionally ``"grpc_endpoint"``,
             ``"api_key"``, etc.  These extra fields are forwarded into the
-            created :class:`~routir.models.Relay` config so the data plane can
+            created :class:`~routir.models.Relay` config (and into
+            :class:`RelayContentProcessor` for content) so the data plane can
             use gRPC even though discovery always uses REST.
+        content_cache_settings: Optional dict with keys ``cache_size``,
+            ``cache_ttl``, ``redis_url``, ``redis_kwargs`` applied to every
+            :class:`RelayContentProcessor` registered from this call.  Sourced
+            from the ``relay_content_cache*`` fields on :class:`Config`.
     """
     if isinstance(servers, (str, dict)):
         servers = [servers]
     servers = [_normalize_server(s) for s in servers]
+    content_cache_settings = content_cache_settings or {}
 
     async def _fetch_avail(entry: Dict[str, str]):
         async with AsyncClient(endpoint=entry["endpoint"], transport="rest") as c:
@@ -65,8 +76,9 @@ async def auto_add_relay_services(servers: Union[str, List[Union[str, Dict[str, 
     # ensure backward compatible
     avail_services = {
         i: {
-            "search": resp['search'] if 'search' in resp else resp['query'],
-            "score": resp['score']
+            "search": resp["search"] if "search" in resp else resp["query"],
+            "score": resp["score"],
+            "content": resp.get("content", []),
         }
         for i, resp in enumerate(resps)
         if resp is not None
@@ -78,13 +90,29 @@ async def auto_add_relay_services(servers: Union[str, List[Union[str, Dict[str, 
             for service_name in types[service_type]:
                 if ProcessorRegistry.has_service(service_name, service_type):
                     continue
-                logger.info(
-                    f"Adding auto Relay to {entry['endpoint']} for service `{service_name}` of type {service_type}"
-                )
+                logger.info(f"Adding auto Relay to {entry['endpoint']} for service `{service_name}` of type {service_type}")
                 relay_config = {"service": service_name, **entry}
                 processor = processor_cls(engine=Relay(name=service_name, config=relay_config))
                 await processor.start()
                 ProcessorRegistry.register(service_name, service_type, processor)
+
+        # Fields on the per-server entry that the AsyncClient understands.
+        client_kwargs = {
+            k: entry[k] for k in ("grpc_endpoint", "api_key", "transport", "timeout", "retries", "tls") if k in entry
+        }
+        for collection_name in types["content"]:
+            if ProcessorRegistry.has_service(collection_name, "content"):
+                continue
+            logger.info(f"Adding auto Relay to {entry['endpoint']} for collection `{collection_name}` of type content")
+            processor = RelayContentProcessor(
+                collection=collection_name,
+                endpoint=entry["endpoint"],
+                **client_kwargs,
+                **content_cache_settings,
+            )
+            await processor.start()
+            ProcessorRegistry.register(collection_name, "content", processor)
+
 
 def load_index_from_hfds(repo_id: str):
     """
@@ -97,13 +125,15 @@ def load_index_from_hfds(repo_id: str):
         Path to the downloaded index directory
     """
     from huggingface_hub import snapshot_download
-    if repo_id.startswith('hfds:'):
-        repo_id = repo_id.replace('hfds:', '')
+
+    if repo_id.startswith("hfds:"):
+        repo_id = repo_id.replace("hfds:", "")
     logger.info(f"Downloading {repo_id} from Huggingface Datasets")
     # TODO: could first load config from the repo and do some checking
     local_path = snapshot_download(repo_id=repo_id, repo_type="dataset") + "/index"
     logger.info(f"Replacing {repo_id} with {local_path}")
     return local_path
+
 
 async def load_config(config: str):
     """
@@ -138,24 +168,41 @@ async def load_config(config: str):
 
     load_all_extensions(user_specified_files=config.file_imports)
 
+    # Build the pipeline-level result cache, if enabled.  Mirrors the
+    # ``cache_size > 0`` gate used by individual processors so ``-1``/``0``
+    # disables it.
+    if config.pipeline_cache > 0:
+        if config.pipeline_cache_redis_url is not None:
+            pipeline_cache = RedisCache(
+                config.pipeline_cache,
+                config.pipeline_cache_ttl,
+                config.pipeline_cache_redis_url,
+                key_prefix="routirpipeline:",
+                **config.pipeline_cache_redis_kwargs,
+            )
+        else:
+            pipeline_cache = LRUCache(config.pipeline_cache, config.pipeline_cache_ttl)
+        set_pipeline_cache(pipeline_cache)
+        logger.info(
+            f"Pipeline-level cache enabled (capacity={config.pipeline_cache}, "
+            f"ttl={config.pipeline_cache_ttl}s, "
+            f"backend={'redis' if config.pipeline_cache_redis_url else 'lru'})"
+        )
+
     for collection_config in config.collections:
         ProcessorRegistry.register(
-            collection_config.name,
-            "content",
-            Processor.load(
-                collection_config.processor,
-                collection_config=collection_config
-            )
+            collection_config.name, "content", Processor.load(collection_config.processor, collection_config=collection_config)
         )
     logger.info("All collections are loaded")
 
     for service_config in config.services:
+
         def _cache_key(x):
             return tuple(x.get(k, "") for k in service_config.cache_key_fields)
 
         # load index from huggingface datasets
-        if 'index_path' in service_config.config and service_config.config['index_path'].startswith('hfds:'):
-            service_config.config['index_path'] = load_index_from_hfds(service_config.config['index_path'])
+        if "index_path" in service_config.config and service_config.config["index_path"].startswith("hfds:"):
+            service_config.config["index_path"] = load_index_from_hfds(service_config.config["index_path"])
 
         engine: Engine = Engine.load(service_config.engine, name=service_config.name, config=service_config.config)
 
@@ -198,17 +245,19 @@ async def load_config(config: str):
 
         logger.info(f"{service_config.name} initialized and ready")
 
-    await auto_add_relay_services(config.server_imports)
+    content_cache_settings = {
+        "cache_size": config.relay_content_cache,
+        "cache_ttl": config.relay_content_cache_ttl,
+        "redis_url": config.relay_content_cache_redis_url,
+        "redis_kwargs": config.relay_content_cache_redis_kwargs,
+    }
+    await auto_add_relay_services(config.server_imports, content_cache_settings)
 
     # Collections (role "content") never appear in the pipeline DSL, so they
     # cannot collide with aliases.  Only check against services callable from
     # within a pipeline string.
     callable_roles = {"search", "score", "fuse", "decompose_query"}
-    reserved_names = {
-        name
-        for name, by_role in ProcessorRegistry.all_services.items()
-        if callable_roles & by_role.keys()
-    }
+    reserved_names = {name for name, by_role in ProcessorRegistry.all_services.items() if callable_roles & by_role.keys()}
     PipelineAliasRegistry.register_all(config.pipeline_aliases, reserved_names)
 
     logger.info("All services are initialized")
