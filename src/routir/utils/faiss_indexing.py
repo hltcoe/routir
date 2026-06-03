@@ -248,7 +248,7 @@ For more index types, see: https://github.com/facebookresearch/faiss/wiki/Faiss-
         type=str,
         default=None,
         help="Optional regex removed from each WebDataset .npz member stem before writing index.ids. "
-        "Only applies to *.tar inputs. Example for multivent-raw: '\\.kf.*$'.",
+        "Only applies to *.tar inputs. Example: '\\.kf.*$' strips a '.kf...' suffix from each member stem.",
     )
 
     # GPU options

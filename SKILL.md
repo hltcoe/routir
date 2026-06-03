@@ -502,7 +502,7 @@ Random access then uses byte offsets.
                     },
                     "matcher": {"kind": "glob", "pattern": "{id}.kf_uni5s.t*.jpg"},
                     "mime": "image/jpeg",
-                    "cache_dir": "/expscratch/me/routir/.cache"
+                    "cache_dir": "/path/to/writable/routir/.cache"
                 }
             }
         }
@@ -542,10 +542,10 @@ tar on a cold request will stall.
 
 - **Always set `cache_dir`** per view when the dataset mount is read-only
   (most shared FS). Point at an in-tree `./.cache/` by convention.
-- **Pre-build sidecars off the login node** with
-  `scripts/warmup_slurm.sh <config.json> [view]`. One sbatch job per
-  *view* — never per shard. See [`CLAUDE.md`](CLAUDE.md#warming-up-sidecar-caches)
-  for the rule and the exact command.
+- **Pre-build sidecars off the login node** by wrapping
+  `python -m routir.collections.indexing.warmup <config.json> [--view <name>]`
+  in an sbatch script. One job per *view* — never per shard. See
+  [`CLAUDE.md`](CLAUDE.md#warming-up-sidecar-caches) for the cluster-citizenship rule.
 
 ### Caching `/content`
 
