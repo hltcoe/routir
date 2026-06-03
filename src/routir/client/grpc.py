@@ -232,7 +232,6 @@ class GrpcTransport(Transport):
             }
         out["collection"] = collection_info
         out["score_view_kinds"] = dict(resp.score_view_kinds)
-        out["collection_view_kinds"] = {name: dict(cv.views) for name, cv in resp.content_views.items()}
         out["pipeline_aliases"] = dict(resp.pipeline_aliases)
         if resp.HasField("grpc_port"):
             out["grpc_port"] = resp.grpc_port

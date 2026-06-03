@@ -359,15 +359,13 @@ async def get_avail_service():
                     "default": "asr"
                 }
             },
-            "score_view_kinds":      {"cross-encoder": "text", "kf-rerank": "bytes"},
-            "collection_view_kinds": {"my-corpus": {"asr": "text", "ocr": "text", "keyframe": "bytes"}},
-            "pipeline_aliases":      {"ragtime2": "{zho%100, rus%100, ...}ScoreFusion"}
+            "score_view_kinds": {"cross-encoder": "text", "kf-rerank": "bytes"},
+            "pipeline_aliases": {"ragtime2": "{zho%100, rus%100, ...}ScoreFusion"}
         }
 
     Used by :func:`~routir.config.load.auto_add_relay_services` to discover
     services on remote servers.  The ``collection`` key carries per-collection
-    view metadata (views map + default view); ``collection_view_kinds``
-    duplicates the inner view-kind data for flat-indexed access.
+    view metadata (views map + default view).
     """
     services_dict = ProcessorRegistry.get_all_services()
 
@@ -386,13 +384,11 @@ async def get_avail_service():
         name: ProcessorRegistry.get_meta(name, "score").get("view_kind", "text")
         for name in services_dict.get("score", [])
     }
-    collection_view_kinds = {name: dict(info["views"]) for name, info in collection_info.items()}
 
     payload = {
         **services_dict,
         "collection": collection_info,
         "score_view_kinds": score_view_kinds,
-        "collection_view_kinds": collection_view_kinds,
         "pipeline_aliases": PipelineAliasRegistry.source,
     }
     if grpc_port_advertised is not None:

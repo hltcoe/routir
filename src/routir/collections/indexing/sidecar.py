@@ -7,10 +7,14 @@ dataset directory is read-only -- a very common production case.
 Resolution priority for both load and write (first viable wins):
 
   1. User-specified ``cache_dir`` (per-view ``cache_dir`` field on the
-     source spec).  Filename inside it is ``<basename>.<hash16>.<suffix>``
-     where the hash is the first 16 hex chars of
-     ``sha256(realpath(source))`` -- so multiple sources sharing one cache
-     dir never collide.
+     source spec).  Layout is ``<cache_dir>/<parent_as_folder>/<basename>.<hash16>.<suffix>``
+     where ``parent_as_folder`` is the source's parent directory with the
+     path separator replaced by ``_`` (e.g. ``/exp/scale26/datasets/foo``
+     becomes ``_exp_scale26_datasets_foo``), and the hash is the first 16
+     hex chars of ``sha256(realpath(source))``.  The folder level keeps
+     listings of large mixed cache dirs readable; the hash keeps shard
+     basenames disambiguated within the folder (and across symlinks to
+     the same source).
   2. Adjacent to the source: ``<source_path>.<suffix>``.  Unhashed name
      (back-compat with the original PR1/PR5b layout for writable mounts).
   3. ``${XDG_CACHE_HOME:-~/.cache}/routir/<suffix without leading dot>/<basename>.<hash16>.<suffix>``.
@@ -34,6 +38,21 @@ def _hash16(source: Path) -> str:
     return hashlib.sha256(str(source.resolve()).encode()).hexdigest()[:16]
 
 
+def _path_as_folder(source: Path) -> str:
+    """Render ``source``'s parent directory as a single folder name by
+    replacing ``os.sep`` with ``_``.
+
+    Used inside ``user_cache_dir`` so a single cache dir spanning many
+    collections / views stays human-browsable: each source directory gets
+    its own subfolder, and shard sidecars sit one level below that.
+
+    Absolute paths keep the leading separator as a leading underscore
+    (e.g. ``/exp/foo`` -> ``_exp_foo``), which is intentional — it
+    preserves the absolute / relative distinction in the folder name.
+    """
+    return str(source.parent).replace(os.sep, "_")
+
+
 def _xdg_cache_root() -> Path:
     base = os.environ.get("XDG_CACHE_HOME") or str(Path.home() / ".cache")
     return Path(base) / "routir"
@@ -52,7 +71,7 @@ def resolve_sidecar_candidates(
     out: List[Path] = []
     if user_cache_dir:
         h = _hash16(source)
-        out.append(Path(user_cache_dir) / f"{source.name}.{h}{suffix}")
+        out.append(Path(user_cache_dir) / _path_as_folder(source) / f"{source.name}.{h}{suffix}")
     out.append(source.parent / (source.name + suffix))
     h = _hash16(source)
     out.append(_xdg_cache_root() / suffix.lstrip(".") / f"{source.name}.{h}{suffix}")

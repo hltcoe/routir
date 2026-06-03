@@ -6,6 +6,7 @@ resource/*
 
 indexes/*
 *.json
+*.sh
 torch_extensions*/*
 docs/build/*
 

@@ -39,7 +39,7 @@ async def test_ping_avail_match(server_both):
         else:
             assert values == grpc_avail[role]
     # Structured keys must be present on both sides.
-    for key in ("collection", "score_view_kinds", "collection_view_kinds", "pipeline_aliases"):
+    for key in ("collection", "score_view_kinds", "pipeline_aliases"):
         assert key in rest_avail, f"REST avail missing key '{key}'"
         assert key in grpc_avail, f"gRPC avail missing key '{key}'"
 
@@ -190,10 +190,8 @@ async def test_avail_includes_grpc_port_on_both_transports(server_both):
     # Trivial fixture registers only a text search service.  ``collection``
     # is an empty dict (no collections), ``score_view_kinds`` is empty too.
     assert rest_avail["collection"] == {}
-    assert rest_avail["collection_view_kinds"] == {}
     assert rest_avail["score_view_kinds"] == {}
     assert grpc_avail["collection"] == {}
-    assert grpc_avail["collection_view_kinds"] == {}
     assert grpc_avail["score_view_kinds"] == {}
 
 
@@ -205,4 +203,3 @@ async def test_avail_omits_grpc_port_when_rest_only(server_rest_only):
     # of whether gRPC is up).
     assert "collection" in avail and isinstance(avail["collection"], dict)
     assert "score_view_kinds" in avail
-    assert "collection_view_kinds" in avail

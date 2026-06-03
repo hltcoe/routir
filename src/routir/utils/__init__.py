@@ -13,8 +13,6 @@ from typing import Any, Dict, List
 import aiohttp
 from tqdm.auto import tqdm
 
-from .lazy_import import _lazy_modules
-
 
 logging.basicConfig(
     format="[%(asctime)s][%(levelname)s][%(name)s:%(filename)s:%(lineno)d] %(message)s",

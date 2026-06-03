@@ -65,6 +65,20 @@ class Engine(FactoryEnabled):
     # this — their slot view_kind comes from the remote server's /avail.
     accepts_view_kind: str = "text"
 
+    @classmethod
+    def load(cls, cls_name: str, **kwargs):
+        # Built-in engines may be lazy-loaded via PEP 562 in routir.models.
+        # Poke the attribute to trigger that import before the subclass walk;
+        # extensions (loaded by file_imports / entry points) are already in the
+        # subclass tree and trip a harmless AttributeError here.
+        from importlib import import_module
+
+        try:
+            getattr(import_module("routir.models"), cls_name)
+        except AttributeError:
+            pass
+        return super().load(cls_name, **kwargs)
+
     def __init__(self, name: str = None, config: Union[str, Path, Dict[str, Any]] = None, **kwargs):
         """
         Initialize the engine.
