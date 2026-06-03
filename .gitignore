@@ -26,3 +26,6 @@ build/*
 
 # Excluding specific examples
 examples/terrier_cord19/*
+# routir sidecar cache + slurm job logs (PR7+)
+.cache/
+logs/

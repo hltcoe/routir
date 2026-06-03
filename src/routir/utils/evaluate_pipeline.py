@@ -59,8 +59,8 @@ async def main():
         args.collection = None
 
     avail = await async_avail(args.endpoint)
-    if args.collection and args.collection not in avail["content"]:
-        print(f"collection {args.collection} is not present in the endpoint content: {avail['content']}")
+    if args.collection and args.collection not in avail["collection"]:
+        print(f"collection {args.collection} is not present in the endpoint collections: {avail['collection']}")
         raise ValueError(f"unknown collection: {args.collection}")
 
     semaphore = asyncio.Semaphore(args.concurrency)

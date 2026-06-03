@@ -52,8 +52,8 @@ class Client:
     def score(self, service: str, query: str, passages: list, **kwargs) -> dict:
         return self._run(self._async.score(service, query, passages, **kwargs))
 
-    def content(self, collection: str, id: str) -> dict:
-        return self._run(self._async.content(collection, id))
+    def content(self, collection: str, id: str, view: Optional[str] = None) -> dict:
+        return self._run(self._async.content(collection, id, view=view))
 
     def pipeline(
         self,

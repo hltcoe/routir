@@ -1,24 +1,30 @@
 import asyncio
+import gzip
+import os
+import re
+import shutil
+from glob import glob
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from ..client import AsyncClient
 from ..models import Engine, Relay
 from ..pipeline import PipelineAliasRegistry, set_pipeline_cache
+from ..pipeline.cache import set_bytes_content_cache_max_bytes
+from ..collections.processor import ContentProcessor
+from ..collections.relay import RelayContentProcessor
 from ..processors import (
     AsyncPairwiseScoreProcessor,
     AsyncQueryProcessor,
     BatchDecomposeQueryProcessor,
     BatchPairwiseScoreProcessor,
-    ContentProcessor,
     Processor,
     ProcessorRegistry,
-    RelayContentProcessor,
 )
 from ..processors.cache import LRUCache, RedisCache
 from ..utils import logger
 from ..utils.extensions import load_all_extensions
-from .config import Config
+from .config import Config, TarSource
 
 
 def _normalize_server(s: Union[str, Dict[str, str]]) -> Dict[str, str]:
@@ -73,12 +79,16 @@ async def auto_add_relay_services(
 
     resps = await asyncio.gather(*[_fetch_avail(s) for s in servers])
 
-    # ensure backward compatible
+    # ``collection`` is a dict-of-collection-info (views map + default);
+    # ``score_view_kinds`` lets us register relay score slots with the right
+    # modality.  Fall back to empty dicts so older shapes degrade gracefully
+    # within a single deployment generation.
     avail_services = {
         i: {
-            "search": resp["search"] if "search" in resp else resp["query"],
+            "search": resp["search"] if "search" in resp else resp.get("query", []),
             "score": resp["score"],
-            "content": resp.get("content", []),
+            "score_view_kinds": resp.get("score_view_kinds", {}),
+            "collection": resp.get("collection", {}),
         }
         for i, resp in enumerate(resps)
         if resp is not None
@@ -94,13 +104,23 @@ async def auto_add_relay_services(
                 relay_config = {"service": service_name, **entry}
                 processor = processor_cls(engine=Relay(name=service_name, config=relay_config))
                 await processor.start()
-                ProcessorRegistry.register(service_name, service_type, processor)
+                # ``score_view_kinds`` is only meaningful for score slots; for
+                # search relays we default to text since the search interface
+                # itself doesn't carry passages.
+                view_kind = types["score_view_kinds"].get(service_name, "text") if service_type == "score" else "text"
+                ProcessorRegistry.register(service_name, service_type, processor, view_kind=view_kind)
 
         # Fields on the per-server entry that the AsyncClient understands.
         client_kwargs = {
             k: entry[k] for k in ("grpc_endpoint", "api_key", "transport", "timeout", "retries", "tls") if k in entry
         }
-        for collection_name in types["content"]:
+        # ``types["collection"]`` is a dict { name: {"views": {...}, "default": ...} }.
+        # Older deployments may still hand back a list of names; coerce both to
+        # the new shape so the rest of the function stays uniform.
+        collection_info = types["collection"]
+        if isinstance(collection_info, list):
+            collection_info = {name: {"views": {}, "default": None} for name in collection_info}
+        for collection_name, info in collection_info.items():
             if ProcessorRegistry.has_service(collection_name, "content"):
                 continue
             logger.info(f"Adding auto Relay to {entry['endpoint']} for collection `{collection_name}` of type content")
@@ -110,8 +130,17 @@ async def auto_add_relay_services(
                 **client_kwargs,
                 **content_cache_settings,
             )
+            # Hydrate so ``SearchPipeline.verify()`` can resolve views remotely.
+            processor.views = dict(info.get("views") or {})
+            processor.default_view = info.get("default")
             await processor.start()
-            ProcessorRegistry.register(collection_name, "content", processor)
+            ProcessorRegistry.register(
+                collection_name,
+                "content",
+                processor,
+                views=processor.views,
+                default_view=processor.default_view,
+            )
 
 
 def load_index_from_hfds(repo_id: str):
@@ -135,7 +164,112 @@ def load_index_from_hfds(repo_id: str):
     return local_path
 
 
-async def load_config(config: str):
+def _has_tar_gz_view(parsed_config) -> bool:
+    """Cheap up-front check: does any collection's view declare a .tar.gz tar_template?"""
+    for coll in parsed_config.collections:
+        if not getattr(coll, "views", None):
+            continue
+        for view_spec in coll.views.values():
+            if not isinstance(view_spec.source, TarSource):
+                continue
+            tmpl = view_spec.source.tar_template
+            if tmpl.endswith(".gz") or tmpl.endswith(".tgz"):
+                return True
+    return False
+
+
+def _decompress_tar_gz_views(tar_source, cache_dir: Path) -> str:
+    """Decompress every concrete ``.tar.gz`` matching ``tar_source.tar_template``
+    into ``cache_dir`` (idempotent) and return the rewritten ``.tar``
+    template.
+
+    Policy: ``<some_dir>/<basename>.tar.gz`` -> ``<cache_dir>/<basename>.tar``.
+    The basename is preserved so ``{shard}`` interpolation continues to work
+    naturally — only the directory and suffix change.
+    """
+    pattern = tar_source.tar_template
+    glob_pattern = re.sub(r"\{shard(?::[^}]*)?\}", "*", pattern)
+    found = sorted(glob(glob_pattern))
+
+    for src in found:
+        src_p = Path(src)
+        name = src_p.name
+        if name.endswith(".tar.gz"):
+            dst_name = name[: -len(".gz")]
+        elif name.endswith(".tgz"):
+            dst_name = name[: -len(".tgz")] + ".tar"
+        else:
+            continue
+        dst = cache_dir / dst_name
+        if not dst.exists():
+            logger.info(f"Decompressing {src} -> {dst} (one-time)")
+            tmp = cache_dir / (dst_name + ".tmp")
+            with gzip.open(src, "rb") as fr, tmp.open("wb") as fw:
+                shutil.copyfileobj(fr, fw, length=1 << 20)
+            os.replace(tmp, dst)
+
+    # Rewrite the template's directory + suffix.
+    p = Path(pattern)
+    new_name = p.name
+    if new_name.endswith(".tar.gz"):
+        new_name = new_name[: -len(".gz")]
+    elif new_name.endswith(".tgz"):
+        new_name = new_name[: -len(".tgz")] + ".tar"
+    return str(cache_dir / new_name)
+
+
+def _resolve_tar_gz_in_views(parsed_config, decompress_cache_dir: Optional[str]) -> None:
+    """Validate / resolve any .tar.gz references in TarSource view specs.
+
+    Without ``decompress_cache_dir``, ``.tar.gz`` references are rejected at
+    startup with a clear redirect (PR6 doesn't yet wire ``indexed_gzip`` into
+    the runtime read path).  With the flag, each ``.tar.gz`` is decompressed
+    once into ``decompress_cache_dir`` and the view's ``tar_template`` is
+    rewritten to point at the ``.tar`` under the cache dir.  The basename is
+    preserved so ``{shard}`` interpolation continues to work naturally.
+    """
+    found_gz: List[str] = []
+    for coll in parsed_config.collections:
+        if not getattr(coll, "views", None):
+            continue
+        for view_name, view_spec in coll.views.items():
+            if not isinstance(view_spec.source, TarSource):
+                continue
+            tmpl = view_spec.source.tar_template
+            # tar_template may contain {shard} — the suffix on the template
+            # itself is enough to detect the policy collection-wide.
+            if tmpl.endswith(".gz") or tmpl.endswith(".tgz"):
+                found_gz.append(f"{coll.name}.{view_name}: {tmpl}")
+
+    if not found_gz:
+        return
+
+    if decompress_cache_dir is None:
+        raise RuntimeError(
+            ".tar.gz tar_template references found in config but "
+            "--allow-tar-gz-decompress-cache is not set:\n  "
+            + "\n  ".join(found_gz)
+            + "\n\nPass --allow-tar-gz-decompress-cache <dir> to decompress "
+              "these shards once into <dir> at startup.  Native gzip random "
+              "access (via indexed_gzip) is not yet wired into the runtime."
+        )
+
+    cache_dir = Path(decompress_cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    for coll in parsed_config.collections:
+        if not getattr(coll, "views", None):
+            continue
+        for view_spec in coll.views.values():
+            if not isinstance(view_spec.source, TarSource):
+                continue
+            if not (view_spec.source.tar_template.endswith(".gz") or
+                    view_spec.source.tar_template.endswith(".tgz")):
+                continue
+            new_template = _decompress_tar_gz_views(view_spec.source, cache_dir)
+            view_spec.source.tar_template = new_template
+
+
+async def load_config(config: str, *, tar_gz_decompress_cache: Optional[str] = None):
     """
     Parse the service configuration and register all collections and services.
 
@@ -155,6 +289,11 @@ async def load_config(config: str):
     Args:
         config (str): Either a file path to a JSON config file or a raw JSON
             string.  File paths are read and parsed automatically.
+        tar_gz_decompress_cache (str, optional): Directory into which any
+            ``.tar.gz`` tar_template references should be decompressed once
+            at startup.  When ``None`` (the default), ``.tar.gz`` references
+            raise at startup — native gzip random access (via
+            ``indexed_gzip``) is not yet wired into the runtime read path.
 
     Note:
         This function modifies the global
@@ -166,11 +305,19 @@ async def load_config(config: str):
 
     config: Config = Config.model_validate_json(config)
 
+    if config.collections:
+        _resolve_tar_gz_in_views(config, tar_gz_decompress_cache)
+
     load_all_extensions(user_specified_files=config.file_imports)
 
     # Build the pipeline-level result cache, if enabled.  Mirrors the
     # ``cache_size > 0`` gate used by individual processors so ``-1``/``0``
     # disables it.
+    # Per-pipeline bytes-content cache cap (PR5a): wired here so REST/gRPC
+    # handlers can pull the value from the same module-level holder as the
+    # pipeline result cache.
+    set_bytes_content_cache_max_bytes(config.bytes_content_cache_max_bytes)
+
     if config.pipeline_cache > 0:
         if config.pipeline_cache_redis_url is not None:
             pipeline_cache = RedisCache(
@@ -190,8 +337,30 @@ async def load_config(config: str):
         )
 
     for collection_config in config.collections:
+        content_processor = Processor.load(
+            collection_config.processor,
+            collection_config=collection_config,
+            cache_size=collection_config.cache,
+            cache_ttl=collection_config.cache_ttl,
+        )
+        # Snapshot per-view kind at registration time.  Prefer the user-declared
+        # ``ViewSpec.kind`` (what they wrote in the config) over the backend's
+        # class attribute; this keeps the registry honest even when a synthetic
+        # / stand-in backend doesn't yet expose the real modality
+        # (e.g. PR5-pending bytes views still using a placeholder backend).
+        declared_views = getattr(collection_config, "views", {}) or {}
+        views_kind = {name: getattr(spec, "kind", "text") for name, spec in declared_views.items()}
+        if not views_kind:
+            # Processors without a ViewSpec list (e.g. IRDSProcessor) fall back
+            # to the resolved backend's kind, or text if even that is absent.
+            backends = getattr(content_processor, "backends", None) or {}
+            views_kind = {name: backend.kind for name, backend in backends.items()}
         ProcessorRegistry.register(
-            collection_config.name, "content", Processor.load(collection_config.processor, collection_config=collection_config)
+            collection_config.name,
+            "content",
+            content_processor,
+            views=views_kind,
+            default_view=getattr(content_processor, "default_view", getattr(collection_config, "default_view", None)),
         )
     logger.info("All collections are loaded")
 
@@ -206,6 +375,8 @@ async def load_config(config: str):
 
         engine: Engine = Engine.load(service_config.engine, name=service_config.name, config=service_config.config)
 
+        engine_view_kind = getattr(engine, "accepts_view_kind", "text")
+
         if engine.can_search:
             processor: Processor = Processor.load(
                 service_config.processor,
@@ -219,7 +390,7 @@ async def load_config(config: str):
                 redis_kwargs=service_config.cache_redis_kwargs,
             )
             await processor.start()
-            ProcessorRegistry.register(service_config.name, "search", processor)
+            ProcessorRegistry.register(service_config.name, "search", processor, view_kind=engine_view_kind)
 
         if engine.can_score and not service_config.scoring_disabled:
             processor = BatchPairwiseScoreProcessor(
@@ -229,7 +400,7 @@ async def load_config(config: str):
                 cache_size=-1,  # turn off cache for now
             )
             await processor.start()
-            ProcessorRegistry.register(service_config.name, "score", processor)
+            ProcessorRegistry.register(service_config.name, "score", processor, view_kind=engine_view_kind)
 
         if engine.can_decompose_query:
             processor = BatchDecomposeQueryProcessor(
@@ -241,7 +412,8 @@ async def load_config(config: str):
                 cache_key=_cache_key,
             )
             await processor.start()
-            ProcessorRegistry.register(service_config.name, "decompose_query", processor)
+            # decompose_query produces text sub-queries; modality flag is "text".
+            ProcessorRegistry.register(service_config.name, "decompose_query", processor, view_kind="text")
 
         logger.info(f"{service_config.name} initialized and ready")
 

@@ -30,14 +30,18 @@ async def test_ping_avail_match(server_both):
 
     # Ping is a fixed-shape dict; must match.
     assert rest_ping == grpc_ping
-    # Avail role-keys must agree; the value lists are compared as sets so a
-    # difference in declaration order doesn't trip the assertion.
+    # PR4: both transports surface the same keys, but the per-key values are
+    # heterogeneous (lists for callable roles, dicts for content/maps).
     assert set(rest_avail.keys()) == set(grpc_avail.keys())
     for role, values in rest_avail.items():
         if isinstance(values, list):
             assert set(values) == set(grpc_avail[role])
         else:
             assert values == grpc_avail[role]
+    # Structured keys must be present on both sides.
+    for key in ("collection", "score_view_kinds", "collection_view_kinds", "pipeline_aliases"):
+        assert key in rest_avail, f"REST avail missing key '{key}'"
+        assert key in grpc_avail, f"gRPC avail missing key '{key}'"
 
 
 async def test_fallback_to_rest_when_grpc_unreachable(server_rest_only):
@@ -183,9 +187,22 @@ async def test_avail_includes_grpc_port_on_both_transports(server_both):
     assert "grpc_port" in rest_avail
     assert "grpc_port" in grpc_avail
     assert rest_avail["grpc_port"] == grpc_avail["grpc_port"]
+    # Trivial fixture registers only a text search service.  ``collection``
+    # is an empty dict (no collections), ``score_view_kinds`` is empty too.
+    assert rest_avail["collection"] == {}
+    assert rest_avail["collection_view_kinds"] == {}
+    assert rest_avail["score_view_kinds"] == {}
+    assert grpc_avail["collection"] == {}
+    assert grpc_avail["collection_view_kinds"] == {}
+    assert grpc_avail["score_view_kinds"] == {}
 
 
 async def test_avail_omits_grpc_port_when_rest_only(server_rest_only):
     async with AsyncClient(endpoint=server_rest_only, transport="rest") as c:
         avail = await c.avail()
     assert "grpc_port" not in avail
+    # Structured keys still exist on REST-only servers (they're independent
+    # of whether gRPC is up).
+    assert "collection" in avail and isinstance(avail["collection"], dict)
+    assert "score_view_kinds" in avail
+    assert "collection_view_kinds" in avail

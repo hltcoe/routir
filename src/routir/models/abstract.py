@@ -51,7 +51,19 @@ class Engine(FactoryEnabled):
         config (dict): Merged configuration (from the ``config`` arg plus ``kwargs``).
         index_path (Path or None): ``Path`` parsed from ``config["index_path"]``,
             or ``None`` if not present.
+        accepts_view_kind (str): Class attribute declaring the modality of inputs
+            to ``score_batch`` / ``search_batch`` (``"text"`` by default; set to
+            ``"bytes"`` on subclasses whose ``score_batch`` consumes
+            ``List[List[bytes]]``).  Read by ``config.load`` and ``auto_register``
+            when registering the engine's processor slots.
     """
+
+    # Declared modality of the engine's score_batch / search_batch inputs.
+    # Read by config.load and auto_register when registering this engine's
+    # processor slots.  Set to "bytes" on subclasses whose score_batch consumes
+    # List[List[bytes]] (e.g. keyframe / audio rerankers).  Relays do not use
+    # this — their slot view_kind comes from the remote server's /avail.
+    accepts_view_kind: str = "text"
 
     def __init__(self, name: str = None, config: Union[str, Path, Dict[str, Any]] = None, **kwargs):
         """
@@ -93,7 +105,7 @@ class Engine(FactoryEnabled):
         else:
             self.index_path: Path = None
 
-    async def search_batch(self, queries: List[str], limit: Union[int, List[int]] = 20, **kwargs) -> List[Dict[str, float]]:
+    async def search_batch(self, queries: List[str], limit: Union[int, List[int]] = 1000, **kwargs) -> List[Dict[str, float]]:
         """
         Retrieve ranked documents for a batch of queries.
 
@@ -132,7 +144,7 @@ class Engine(FactoryEnabled):
         """
         raise NotImplementedError
 
-    async def search(self, query: str, limit: int = 20, **kwargs) -> Dict[str, float]:
+    async def search(self, query: str, limit: int = 1000, **kwargs) -> Dict[str, float]:
         """Perform single query search."""
         return (await self.search_batch([query], limit, **kwargs))[0]
 
@@ -469,12 +481,11 @@ class Reranker(Engine):
             failed = sum(1 for r in resps if r is None)
             if failed:
                 raise RuntimeError(
-                    f"Failed to retrieve text for {failed}/{len(resps)} documents from "
-                    f"{self.text_service['endpoint']}/content"
+                    f"Failed to retrieve text for {failed}/{len(resps)} documents from {self.text_service['endpoint']}/content"
                 )
             return {resp["id"]: resp["text"] for resp in resps}
 
-    async def search_batch(self, queries, limit=20, **kwargs) -> List[Dict[str, float]]:
+    async def search_batch(self, queries, limit=1000, **kwargs) -> List[Dict[str, float]]:
         """
         Retrieve and rerank candidates using the configured upstream engine.
 
@@ -487,6 +498,27 @@ class Reranker(Engine):
         """
         if self.upstream is None:
             raise RuntimeError(f"Upstream retrieval is not defined, {self.name} only support scoring.")
+
+        # Forward-defensive: this helper fetches text via /content and passes
+        # str passages to score_batch.  A bytes-modality engine would silently
+        # misinterpret those str payloads, so refuse to run.  No current
+        # Reranker subclass is bytes-capable; the check is here so PR5+ engines
+        # opt in deliberately by overriding search_batch themselves.
+        if self.accepts_view_kind == "bytes":
+            # Cross-check with the registry slot kind so a misconfigured
+            # ``accepts_view_kind`` on the class is also caught.
+            slot_kind = "bytes"
+            try:
+                from ..processors.registry import ProcessorRegistry as _PR
+                slot_meta = _PR.get_meta(self.name, "score") if self.name else {}
+                slot_kind = slot_meta.get("view_kind", self.accepts_view_kind)
+            except Exception:
+                pass
+            raise RuntimeError(
+                f"Reranker.search_batch is text-only; engine '{self.name}' declares "
+                f"accepts_view_kind='bytes' (slot view_kind='{slot_kind}'). "
+                "Bytes-capable rerankers must override search_batch and fetch via the pipeline."
+            )
 
         if not isinstance(limit, list):
             limit = [limit] * len(queries)

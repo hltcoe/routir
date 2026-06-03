@@ -28,8 +28,11 @@ def stub_service():
         yield proc
     finally:
         ProcessorRegistry.all_services.get(_STUB_NAME, {}).pop("search", None)
+        ProcessorRegistry.slot_meta.get(_STUB_NAME, {}).pop("search", None)
         if _STUB_NAME in ProcessorRegistry.all_services and not ProcessorRegistry.all_services[_STUB_NAME]:
             del ProcessorRegistry.all_services[_STUB_NAME]
+        if _STUB_NAME in ProcessorRegistry.slot_meta and not ProcessorRegistry.slot_meta[_STUB_NAME]:
+            del ProcessorRegistry.slot_meta[_STUB_NAME]
 
 
 async def test_submit_returns_processor_result(stub_service):

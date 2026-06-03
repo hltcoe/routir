@@ -28,12 +28,29 @@ message StringList {
   repeated string items = 1;
 }
 
+// Per-collection view metadata: view name -> kind ("text" or "bytes"),
+// plus the optional default view.  Returned by ``Avail`` so clients
+// can resolve views without an extra round-trip.
+message ContentViewKinds {
+  // view name -> kind ("text" or "bytes")
+  map<string, string> views = 1;
+  optional string default = 2;
+}
+
 message AvailResponse {
+  // Callable roles only: search, score, fuse, decompose_query.  Collections
+  // are intentionally absent here — they're surfaced via ``content_views``
+  // (REST key ``collection``) since they need richer per-view metadata.
   map<string, StringList> services = 1;
   map<string, string> pipeline_aliases = 2;
   // Port the gRPC server is listening on, when --grpc is enabled.
   // Clients can use this to auto-discover gRPC when only the REST URL is known.
   optional int32 grpc_port = 3;
+  // Per-collection content view metadata (view name -> kind + default).
+  // Surfaced on the REST side as the ``collection`` key.
+  map<string, ContentViewKinds> content_views = 4;
+  // Per-score-service modality of score_batch inputs ("text" or "bytes").
+  map<string, string> score_view_kinds = 5;
 }
 
 message SearchRequest {
@@ -53,10 +70,26 @@ message SearchResponse {
   double timestamp = 5;
 }
 
+// One scoring passage, either text (the only thing PR2 uses on the wire)
+// or one-or-more byte blobs (used in PR5+ for bytes-view rerankers; e.g.
+// multiple keyframes per video).
+message Passage {
+  oneof value {
+    string text = 1;
+    BytesParts bytes = 2;
+  }
+}
+
+// Wrapper for ``repeated bytes`` so it can sit inside a ``oneof``.
+// For a single blob, ``parts`` has length 1.
+message BytesParts {
+  repeated bytes parts = 1;
+}
+
 message ScoreRequest {
   string service = 1;
   string query = 2;
-  repeated string passages = 3;
+  repeated Passage passages = 3;
   optional string prompt = 4;
   google.protobuf.Struct extras = 5;
 }
@@ -77,14 +110,19 @@ message ScoreResponse {
 message ContentRequest {
   string collection = 1;
   string id = 2;
+  optional string view = 3;
 }
 
 message ContentResponse {
   string collection = 1;
   string id = 2;
-  string text = 3;
   bool cached = 4;
   double timestamp = 5;
+  optional string view = 7;
+  oneof content {
+    string text = 3;
+    BytesParts data = 6;
+  }
 }
 
 message PipelineRequest {

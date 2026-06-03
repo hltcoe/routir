@@ -55,6 +55,15 @@ class Qwen3(Engine):
 
         self.embedding_model_name = self.config.get("embedding_model_name", "Qwen/Qwen3-Embedding-8B")
 
+        # Template applied to every query before encoding. `{query}` is substituted with the
+        # raw query text. The default is the Qwen3-Embedding text-retrieval prompt; multimodal
+        # encoders (Qwen3-VL, SigLIP2) need a different prompt or none at all, set per-service
+        # in the config (e.g. "{query}" for SigLIP2 to disable the instruction entirely).
+        self.query_prompt = self.config.get(
+            "query_prompt",
+            "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:{query}",
+        )
+
         if self.config.get("embedding_base_url"):
             self.local_embedding_model = None
             self.client = openai.AsyncOpenAI(
@@ -102,8 +111,9 @@ class Qwen3(Engine):
             embeddings = np.array([x.embedding for x in embeddings.data])
 
         return embeddings
+
     async def search_batch(
-        self, queries: List[str], limit: Union[int, List[int]] = 20, subsets: List[str] = None, maxp: bool = True
+        self, queries: List[str], limit: Union[int, List[int]] = 1000, subsets: List[str] = None, maxp: bool = True
     ) -> List[Dict[str, float]]:
         if isinstance(limit, int):
             limit = [int(limit)] * len(queries)
@@ -113,7 +123,7 @@ class Qwen3(Engine):
 
         query_embeddings = await self.encode_text(self.add_query_instructions(queries))
 
-        scores, ids = self.index.search(x=query_embeddings, k=int(max(limit) * self.config.get("k_scale", 20)))
+        scores, ids = self.index.search(x=query_embeddings, k=int(max(limit) * self.config.get("k_scale", 2)))
 
         qmap = dict(enumerate(queries))
         run = TRECRun({qid: dict(zip([self.doc_ids[x] for x in ids[qid]], scores[qid])) for qid in qmap})
@@ -122,8 +132,7 @@ class Qwen3(Engine):
         return [dict_topk(self.filter_subset(scores, subset), l) for subset, l, scores in zip(subsets, limit, results)]
 
     def add_query_instructions(self, queries) -> List[str]:
-        task_description = "Given a web search query, retrieve relevant passages that answer the query"
-        return [f"Instruct: {task_description}\nQuery:{query}" for query in queries]
+        return [self.query_prompt.format(query=query) for query in queries]
 
     async def score_batch(self, queries: List[str], passages: List[str], candidate_length: List[int]) -> List[List[float]]:
         assert len(candidate_length) == len(queries)
@@ -188,11 +197,7 @@ class Qwen3EmbeddingModel:
         data_iter = iter(data)
         with torch.no_grad():
             for _ in tqdm(
-                range(0, len(data), self.batch_size),
-                desc="qwen3.encode",
-                leave=True,
-                disable=disable_tqdm,
-                dynamic_ncols=True
+                range(0, len(data), self.batch_size), desc="qwen3.encode", leave=True, disable=disable_tqdm, dynamic_ncols=True
             ):
                 id_batch, text_batch = zip(*list(itertools.islice(data_iter, self.batch_size)))
                 assert text_batch

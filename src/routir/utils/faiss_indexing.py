@@ -2,12 +2,21 @@
 """
 FAISS Index Builder
 
-This script builds a FAISS index from embedding vectors stored in .npy files.
+This script builds a FAISS index from embedding vectors stored on disk.
 It supports GPU-accelerated training, product quantization, and various index types.
 
-The script expects input files in .npy format where each file contains a dictionary with:
-- 'features': 2D numpy array of embeddings (shape: [n_docs, embedding_dim])
-- 'ids': List of document IDs corresponding to each embedding
+Two input layouts are supported and auto-detected from the directory contents:
+
+1. ``*.npy`` files, where each file contains a dictionary with:
+   - 'features': 2D numpy array of embeddings (shape: [n_docs, embedding_dim])
+   - 'ids': List of document IDs corresponding to each embedding
+
+2. ``*.tar`` WebDataset shards (e.g. the qwen3_vl_2b embeddings), where each tar
+   contains many ``*.npz`` files (one per video). Each ``.npz`` holds:
+   - 'embeddings': 2D numpy array of embeddings (shape: [n_keyframes, embedding_dim])
+   - 'keyframe_ids': 1D array of keyframe IDs (one per embedding row)
+   The per-keyframe embeddings are mean-pooled into a single embedding per video,
+   and the document ID written is the ``.npz`` stem (the video ID).
 
 Usage:
     python faiss_indexing.py <input_dir> <output_dir> [options]
@@ -17,6 +26,8 @@ Example:
 """
 
 import argparse
+import io
+import tarfile
 from pathlib import Path
 
 import faiss
@@ -25,6 +36,56 @@ from tqdm.auto import tqdm
 
 
 faiss.omp_set_num_threads(32)
+
+
+def load_npy_shard(path):
+    """Load a single ``.npy`` dict shard -> (features [N, dim], ids list)."""
+    shard = np.load(path, allow_pickle=True).item()
+    return shard["features"], list(shard["ids"])
+
+
+def load_tar_shard(path):
+    """Load all ``.npz`` members of a WebDataset tar -> (features [N, dim], ids list).
+
+    Each ``.npz`` member holds the per-keyframe embeddings of a single video. The
+    keyframe embeddings are mean-pooled (and re-normalized, since the keyframe
+    vectors are unit-norm) into a single embedding per video, with the document ID
+    set to the ``.npz`` member stem (the video ID).
+    """
+    features = []
+    ids = []
+    with tarfile.open(path, "r") as tar:
+        for member in tar.getmembers():
+            if not (member.isfile() and member.name.endswith(".npz")):
+                continue
+            with np.load(io.BytesIO(tar.extractfile(member).read()), allow_pickle=True) as npz:
+                embeddings = npz["embeddings"]
+            # mean-pool across keyframes -> one embedding per video, then re-normalize
+            video_embedding = embeddings.mean(axis=0)
+            norm = np.linalg.norm(video_embedding)
+            if norm > 0:
+                video_embedding = video_embedding / norm
+            features.append(video_embedding.astype(np.float32))
+            ids.append(Path(member.name).stem)
+    if not features:
+        return np.empty((0, 0), dtype=np.float32), []
+    return np.stack(features, axis=0), ids
+
+
+def discover_shards(input_dir):
+    """Return (sorted shard paths, loader fn) auto-detecting the input layout."""
+    input_dir = Path(input_dir)
+
+    npy_fns = sorted(input_dir.glob("*.npy"))
+    if npy_fns:
+        return npy_fns, load_npy_shard
+
+    tar_fns = sorted(input_dir.glob("*.tar"))
+    if tar_fns:
+        return tar_fns, load_tar_shard
+
+    raise FileNotFoundError(f"No *.npy or *.tar embedding shards found in {input_dir}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -48,22 +109,22 @@ Index String Examples:
   - "IVF4096,Flat": Inverted file with exact vectors (faster than Flat for large datasets)
 
 For more index types, see: https://github.com/facebookresearch/faiss/wiki/Faiss-indexes
-        """
+        """,
     )
 
     # Positional arguments
     parser.add_argument(
         "input_dir",
         type=str,
-        help="Directory containing *.npy files with embeddings. Each .npy file must be a dictionary "
-             "with 'features' (2D numpy array of embeddings) and 'ids' (list of document IDs). "
-             "The first dimension of 'features' must match the length of 'ids'."
+        help="Directory containing embedding shards. Auto-detected as either *.npy dict files "
+        "(with 'features' and 'ids') or *.tar WebDataset shards of per-video *.npz files "
+        "(with 'embeddings' and 'keyframe_ids', mean-pooled to one embedding per video).",
     )
     parser.add_argument(
         "output_dir",
         type=str,
         help="Output directory where the FAISS index and document IDs will be saved. "
-             "Creates 'index.faiss' (the FAISS index) and 'index.ids' (document ID mapping)."
+        "Creates 'index.faiss' (the FAISS index) and 'index.ids' (document ID mapping).",
     )
 
     # Index configuration
@@ -79,9 +140,9 @@ For more index types, see: https://github.com/facebookresearch/faiss/wiki/Faiss-
     parser.add_argument(
         "--sampling_rate",
         type=float,
-        default=0.07,
+        default=0.25,
         help="Fraction of data to use for training the index (0.0-1.0). "
-             "Default: 0.07 (7%%). Higher values improve index quality but increase training time. "
+             "Default: 0.25 (25%%). Higher values improve index quality but increase training time. "
              "Recommended: 0.05-0.1 for large datasets, 0.1-0.5 for smaller datasets."
     )
 
@@ -107,10 +168,10 @@ For more index types, see: https://github.com/facebookresearch/faiss/wiki/Faiss-
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    all_fns = list(Path(args.input_dir).glob("*.npy"))
+    all_fns, load_shard = discover_shards(args.input_dir)
 
     sampled_fns = all_fns[:: int(1 / args.sampling_rate)]
-    sampled_vectors = np.concatenate([np.load(fn, allow_pickle=True).item()["features"] for fn in tqdm(sampled_fns)], axis=0)
+    sampled_vectors = np.concatenate([load_shard(fn)[0] for fn in tqdm(sampled_fns)], axis=0)
 
     # drop example with na
     sampled_vectors = sampled_vectors[~np.isnan(sampled_vectors).any(axis=1)]
@@ -135,11 +196,11 @@ For more index types, see: https://github.com/facebookresearch/faiss/wiki/Faiss-
 
     docids = []
     for fn in tqdm(all_fns, desc="adding", dynamic_ncols=True):
-        shard = np.load(fn, allow_pickle=True).item()
+        features, ids = load_shard(fn)
         # dropna features
-        mask = ~np.isnan(shard["features"]).any(axis=1)
-        features = shard["features"][mask]
-        ids = np.array(shard["ids"])[mask].tolist()
+        mask = ~np.isnan(features).any(axis=1)
+        features = features[mask]
+        ids = np.array(ids)[mask].tolist()
 
         index.add(features)
         docids += ids

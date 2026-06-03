@@ -317,9 +317,12 @@ class AsyncClient:
         payload = {"service": service, "query": query, "passages": passages, **kwargs}
         return await tx.score(payload)
 
-    async def content(self, collection: str, id: str) -> dict:
+    async def content(self, collection: str, id: str, view: Optional[str] = None) -> dict:
         tx = await self._ensure()
-        return await tx.content({"collection": collection, "id": id})
+        payload = {"collection": collection, "id": id}
+        if view is not None:
+            payload["view"] = view
+        return await tx.content(payload)
 
     async def pipeline(
         self,

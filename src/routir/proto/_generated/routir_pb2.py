@@ -25,17 +25,23 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0croutir.proto\x12\troutir.v1\x1a\x1cgoogle/protobuf/struct.proto\"\r\n\x0bPingRequest\"\x1e\n\x0cPingResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\"\x0e\n\x0c\x41vailRequest\"\x1b\n\nStringList\x12\r\n\x05items\x18\x01 \x03(\t\"\xb8\x02\n\rAvailResponse\x12\x38\n\x08services\x18\x01 \x03(\x0b\x32&.routir.v1.AvailResponse.ServicesEntry\x12G\n\x10pipeline_aliases\x18\x02 \x03(\x0b\x32-.routir.v1.AvailResponse.PipelineAliasesEntry\x12\x16\n\tgrpc_port\x18\x03 \x01(\x05H\x00\x88\x01\x01\x1a\x46\n\rServicesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.routir.v1.StringList:\x02\x38\x01\x1a\x36\n\x14PipelineAliasesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0c\n\n_grpc_port\"\xc0\x01\n\rSearchRequest\x12\x0f\n\x07service\x18\x01 \x01(\t\x12\r\n\x05query\x18\x02 \x01(\t\x12\x12\n\x05limit\x18\x03 \x01(\x05H\x00\x88\x01\x01\x12\x13\n\x06subset\x18\x04 \x01(\tH\x01\x88\x01\x01\x12\x18\n\x0binstruction\x18\x05 \x01(\tH\x02\x88\x01\x01\x12\'\n\x06\x65xtras\x18\x06 \x01(\x0b\x32\x17.google.protobuf.StructB\x08\n\x06_limitB\t\n\x07_subsetB\x0e\n\x0c_instruction\"\xb9\x01\n\x0eSearchResponse\x12\r\n\x05query\x18\x01 \x01(\t\x12\x35\n\x06scores\x18\x02 \x03(\x0b\x32%.routir.v1.SearchResponse.ScoresEntry\x12\x0f\n\x07service\x18\x03 \x01(\t\x12\x0e\n\x06\x63\x61\x63hed\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\x1a-\n\x0bScoresEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\"\x89\x01\n\x0cScoreRequest\x12\x0f\n\x07service\x18\x01 \x01(\t\x12\r\n\x05query\x18\x02 \x01(\t\x12\x10\n\x08passages\x18\x03 \x03(\t\x12\x13\n\x06prompt\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\'\n\x06\x65xtras\x18\x05 \x01(\x0b\x32\x17.google.protobuf.StructB\t\n\x07_prompt\"\x1f\n\tScoreMeta\x12\x12\n\nn_passages\x18\x01 \x01(\x05\"\x86\x01\n\rScoreResponse\x12\r\n\x05query\x18\x01 \x01(\t\x12\x0e\n\x06scores\x18\x02 \x03(\x01\x12\x0f\n\x07service\x18\x03 \x01(\t\x12\x0e\n\x06\x63\x61\x63hed\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\x12\"\n\x04meta\x18\x06 \x01(\x0b\x32\x14.routir.v1.ScoreMeta\"0\n\x0e\x43ontentRequest\x12\x12\n\ncollection\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\"b\n\x0f\x43ontentResponse\x12\x12\n\ncollection\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\x12\x0e\n\x06\x63\x61\x63hed\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\"\xf0\x01\n\x0fPipelineRequest\x12\x10\n\x08pipeline\x18\x01 \x01(\t\x12\r\n\x05query\x18\x02 \x01(\t\x12\x17\n\ncollection\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\x45\n\x0eruntime_kwargs\x18\x04 \x03(\x0b\x32-.routir.v1.PipelineRequest.RuntimeKwargsEntry\x1aM\n\x12RuntimeKwargsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.google.protobuf.Struct:\x02\x38\x01\x42\r\n\x0b_collection\"\xc6\x01\n\x10PipelineResponse\x12\r\n\x05query\x18\x01 \x01(\t\x12\x37\n\x06scores\x18\x02 \x03(\x0b\x32\'.routir.v1.PipelineResponse.ScoresEntry\x12\x18\n\x10\x65xpanded_queries\x18\x03 \x03(\t\x12\x0e\n\x06\x63\x61\x63hed\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\x1a-\n\x0bScoresEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\x32\xff\x02\n\x06Routir\x12\x37\n\x04Ping\x12\x16.routir.v1.PingRequest\x1a\x17.routir.v1.PingResponse\x12:\n\x05\x41vail\x12\x17.routir.v1.AvailRequest\x1a\x18.routir.v1.AvailResponse\x12=\n\x06Search\x12\x18.routir.v1.SearchRequest\x1a\x19.routir.v1.SearchResponse\x12:\n\x05Score\x12\x17.routir.v1.ScoreRequest\x1a\x18.routir.v1.ScoreResponse\x12@\n\x07\x43ontent\x12\x19.routir.v1.ContentRequest\x1a\x1a.routir.v1.ContentResponse\x12\x43\n\x08Pipeline\x12\x1a.routir.v1.PipelineRequest\x1a\x1b.routir.v1.PipelineResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0croutir.proto\x12\troutir.v1\x1a\x1cgoogle/protobuf/struct.proto\"\r\n\x0bPingRequest\"\x1e\n\x0cPingResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\"\x0e\n\x0c\x41vailRequest\"\x1b\n\nStringList\x12\r\n\x05items\x18\x01 \x03(\t\"\x99\x01\n\x10\x43ontentViewKinds\x12\x35\n\x05views\x18\x01 \x03(\x0b\x32&.routir.v1.ContentViewKinds.ViewsEntry\x12\x14\n\x07\x64\x65\x66\x61ult\x18\x02 \x01(\tH\x00\x88\x01\x01\x1a,\n\nViewsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\n\n\x08_default\"\xcc\x04\n\rAvailResponse\x12\x38\n\x08services\x18\x01 \x03(\x0b\x32&.routir.v1.AvailResponse.ServicesEntry\x12G\n\x10pipeline_aliases\x18\x02 \x03(\x0b\x32-.routir.v1.AvailResponse.PipelineAliasesEntry\x12\x16\n\tgrpc_port\x18\x03 \x01(\x05H\x00\x88\x01\x01\x12\x41\n\rcontent_views\x18\x04 \x03(\x0b\x32*.routir.v1.AvailResponse.ContentViewsEntry\x12\x46\n\x10score_view_kinds\x18\x05 \x03(\x0b\x32,.routir.v1.AvailResponse.ScoreViewKindsEntry\x1a\x46\n\rServicesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.routir.v1.StringList:\x02\x38\x01\x1a\x36\n\x14PipelineAliasesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1aP\n\x11\x43ontentViewsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.routir.v1.ContentViewKinds:\x02\x38\x01\x1a\x35\n\x13ScoreViewKindsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0c\n\n_grpc_port\"\xc0\x01\n\rSearchRequest\x12\x0f\n\x07service\x18\x01 \x01(\t\x12\r\n\x05query\x18\x02 \x01(\t\x12\x12\n\x05limit\x18\x03 \x01(\x05H\x00\x88\x01\x01\x12\x13\n\x06subset\x18\x04 \x01(\tH\x01\x88\x01\x01\x12\x18\n\x0binstruction\x18\x05 \x01(\tH\x02\x88\x01\x01\x12\'\n\x06\x65xtras\x18\x06 \x01(\x0b\x32\x17.google.protobuf.StructB\x08\n\x06_limitB\t\n\x07_subsetB\x0e\n\x0c_instruction\"\xb9\x01\n\x0eSearchResponse\x12\r\n\x05query\x18\x01 \x01(\t\x12\x35\n\x06scores\x18\x02 \x03(\x0b\x32%.routir.v1.SearchResponse.ScoresEntry\x12\x0f\n\x07service\x18\x03 \x01(\t\x12\x0e\n\x06\x63\x61\x63hed\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\x1a-\n\x0bScoresEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\"J\n\x07Passage\x12\x0e\n\x04text\x18\x01 \x01(\tH\x00\x12&\n\x05\x62ytes\x18\x02 \x01(\x0b\x32\x15.routir.v1.BytesPartsH\x00\x42\x07\n\x05value\"\x1b\n\nBytesParts\x12\r\n\x05parts\x18\x01 \x03(\x0c\"\x9d\x01\n\x0cScoreRequest\x12\x0f\n\x07service\x18\x01 \x01(\t\x12\r\n\x05query\x18\x02 \x01(\t\x12$\n\x08passages\x18\x03 \x03(\x0b\x32\x12.routir.v1.Passage\x12\x13\n\x06prompt\x18\x04 \x01(\tH\x00\x88\x01\x01\x12\'\n\x06\x65xtras\x18\x05 \x01(\x0b\x32\x17.google.protobuf.StructB\t\n\x07_prompt\"\x1f\n\tScoreMeta\x12\x12\n\nn_passages\x18\x01 \x01(\x05\"\x86\x01\n\rScoreResponse\x12\r\n\x05query\x18\x01 \x01(\t\x12\x0e\n\x06scores\x18\x02 \x03(\x01\x12\x0f\n\x07service\x18\x03 \x01(\t\x12\x0e\n\x06\x63\x61\x63hed\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\x12\"\n\x04meta\x18\x06 \x01(\x0b\x32\x14.routir.v1.ScoreMeta\"L\n\x0e\x43ontentRequest\x12\x12\n\ncollection\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\x12\x11\n\x04view\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_view\"\xb2\x01\n\x0f\x43ontentResponse\x12\x12\n\ncollection\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\x12\x0e\n\x06\x63\x61\x63hed\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\x12\x11\n\x04view\x18\x07 \x01(\tH\x01\x88\x01\x01\x12\x0e\n\x04text\x18\x03 \x01(\tH\x00\x12%\n\x04\x64\x61ta\x18\x06 \x01(\x0b\x32\x15.routir.v1.BytesPartsH\x00\x42\t\n\x07\x63ontentB\x07\n\x05_view\"\xf0\x01\n\x0fPipelineRequest\x12\x10\n\x08pipeline\x18\x01 \x01(\t\x12\r\n\x05query\x18\x02 \x01(\t\x12\x17\n\ncollection\x18\x03 \x01(\tH\x00\x88\x01\x01\x12\x45\n\x0eruntime_kwargs\x18\x04 \x03(\x0b\x32-.routir.v1.PipelineRequest.RuntimeKwargsEntry\x1aM\n\x12RuntimeKwargsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.google.protobuf.Struct:\x02\x38\x01\x42\r\n\x0b_collection\"\xc6\x01\n\x10PipelineResponse\x12\r\n\x05query\x18\x01 \x01(\t\x12\x37\n\x06scores\x18\x02 \x03(\x0b\x32\'.routir.v1.PipelineResponse.ScoresEntry\x12\x18\n\x10\x65xpanded_queries\x18\x03 \x03(\t\x12\x0e\n\x06\x63\x61\x63hed\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\x1a-\n\x0bScoresEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\x32\xff\x02\n\x06Routir\x12\x37\n\x04Ping\x12\x16.routir.v1.PingRequest\x1a\x17.routir.v1.PingResponse\x12:\n\x05\x41vail\x12\x17.routir.v1.AvailRequest\x1a\x18.routir.v1.AvailResponse\x12=\n\x06Search\x12\x18.routir.v1.SearchRequest\x1a\x19.routir.v1.SearchResponse\x12:\n\x05Score\x12\x17.routir.v1.ScoreRequest\x1a\x18.routir.v1.ScoreResponse\x12@\n\x07\x43ontent\x12\x19.routir.v1.ContentRequest\x1a\x1a.routir.v1.ContentResponse\x12\x43\n\x08Pipeline\x12\x1a.routir.v1.PipelineRequest\x1a\x1b.routir.v1.PipelineResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'routir_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
+  _globals['_CONTENTVIEWKINDS_VIEWSENTRY']._loaded_options = None
+  _globals['_CONTENTVIEWKINDS_VIEWSENTRY']._serialized_options = b'8\001'
   _globals['_AVAILRESPONSE_SERVICESENTRY']._loaded_options = None
   _globals['_AVAILRESPONSE_SERVICESENTRY']._serialized_options = b'8\001'
   _globals['_AVAILRESPONSE_PIPELINEALIASESENTRY']._loaded_options = None
   _globals['_AVAILRESPONSE_PIPELINEALIASESENTRY']._serialized_options = b'8\001'
+  _globals['_AVAILRESPONSE_CONTENTVIEWSENTRY']._loaded_options = None
+  _globals['_AVAILRESPONSE_CONTENTVIEWSENTRY']._serialized_options = b'8\001'
+  _globals['_AVAILRESPONSE_SCOREVIEWKINDSENTRY']._loaded_options = None
+  _globals['_AVAILRESPONSE_SCOREVIEWKINDSENTRY']._serialized_options = b'8\001'
   _globals['_SEARCHRESPONSE_SCORESENTRY']._loaded_options = None
   _globals['_SEARCHRESPONSE_SCORESENTRY']._serialized_options = b'8\001'
   _globals['_PIPELINEREQUEST_RUNTIMEKWARGSENTRY']._loaded_options = None
@@ -50,36 +56,48 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_AVAILREQUEST']._serialized_end=118
   _globals['_STRINGLIST']._serialized_start=120
   _globals['_STRINGLIST']._serialized_end=147
-  _globals['_AVAILRESPONSE']._serialized_start=150
-  _globals['_AVAILRESPONSE']._serialized_end=462
-  _globals['_AVAILRESPONSE_SERVICESENTRY']._serialized_start=322
-  _globals['_AVAILRESPONSE_SERVICESENTRY']._serialized_end=392
-  _globals['_AVAILRESPONSE_PIPELINEALIASESENTRY']._serialized_start=394
-  _globals['_AVAILRESPONSE_PIPELINEALIASESENTRY']._serialized_end=448
-  _globals['_SEARCHREQUEST']._serialized_start=465
-  _globals['_SEARCHREQUEST']._serialized_end=657
-  _globals['_SEARCHRESPONSE']._serialized_start=660
-  _globals['_SEARCHRESPONSE']._serialized_end=845
-  _globals['_SEARCHRESPONSE_SCORESENTRY']._serialized_start=800
-  _globals['_SEARCHRESPONSE_SCORESENTRY']._serialized_end=845
-  _globals['_SCOREREQUEST']._serialized_start=848
-  _globals['_SCOREREQUEST']._serialized_end=985
-  _globals['_SCOREMETA']._serialized_start=987
-  _globals['_SCOREMETA']._serialized_end=1018
-  _globals['_SCORERESPONSE']._serialized_start=1021
-  _globals['_SCORERESPONSE']._serialized_end=1155
-  _globals['_CONTENTREQUEST']._serialized_start=1157
-  _globals['_CONTENTREQUEST']._serialized_end=1205
-  _globals['_CONTENTRESPONSE']._serialized_start=1207
-  _globals['_CONTENTRESPONSE']._serialized_end=1305
-  _globals['_PIPELINEREQUEST']._serialized_start=1308
-  _globals['_PIPELINEREQUEST']._serialized_end=1548
-  _globals['_PIPELINEREQUEST_RUNTIMEKWARGSENTRY']._serialized_start=1456
-  _globals['_PIPELINEREQUEST_RUNTIMEKWARGSENTRY']._serialized_end=1533
-  _globals['_PIPELINERESPONSE']._serialized_start=1551
-  _globals['_PIPELINERESPONSE']._serialized_end=1749
-  _globals['_PIPELINERESPONSE_SCORESENTRY']._serialized_start=800
-  _globals['_PIPELINERESPONSE_SCORESENTRY']._serialized_end=845
-  _globals['_ROUTIR']._serialized_start=1752
-  _globals['_ROUTIR']._serialized_end=2135
+  _globals['_CONTENTVIEWKINDS']._serialized_start=150
+  _globals['_CONTENTVIEWKINDS']._serialized_end=303
+  _globals['_CONTENTVIEWKINDS_VIEWSENTRY']._serialized_start=247
+  _globals['_CONTENTVIEWKINDS_VIEWSENTRY']._serialized_end=291
+  _globals['_AVAILRESPONSE']._serialized_start=306
+  _globals['_AVAILRESPONSE']._serialized_end=894
+  _globals['_AVAILRESPONSE_SERVICESENTRY']._serialized_start=617
+  _globals['_AVAILRESPONSE_SERVICESENTRY']._serialized_end=687
+  _globals['_AVAILRESPONSE_PIPELINEALIASESENTRY']._serialized_start=689
+  _globals['_AVAILRESPONSE_PIPELINEALIASESENTRY']._serialized_end=743
+  _globals['_AVAILRESPONSE_CONTENTVIEWSENTRY']._serialized_start=745
+  _globals['_AVAILRESPONSE_CONTENTVIEWSENTRY']._serialized_end=825
+  _globals['_AVAILRESPONSE_SCOREVIEWKINDSENTRY']._serialized_start=827
+  _globals['_AVAILRESPONSE_SCOREVIEWKINDSENTRY']._serialized_end=880
+  _globals['_SEARCHREQUEST']._serialized_start=897
+  _globals['_SEARCHREQUEST']._serialized_end=1089
+  _globals['_SEARCHRESPONSE']._serialized_start=1092
+  _globals['_SEARCHRESPONSE']._serialized_end=1277
+  _globals['_SEARCHRESPONSE_SCORESENTRY']._serialized_start=1232
+  _globals['_SEARCHRESPONSE_SCORESENTRY']._serialized_end=1277
+  _globals['_PASSAGE']._serialized_start=1279
+  _globals['_PASSAGE']._serialized_end=1353
+  _globals['_BYTESPARTS']._serialized_start=1355
+  _globals['_BYTESPARTS']._serialized_end=1382
+  _globals['_SCOREREQUEST']._serialized_start=1385
+  _globals['_SCOREREQUEST']._serialized_end=1542
+  _globals['_SCOREMETA']._serialized_start=1544
+  _globals['_SCOREMETA']._serialized_end=1575
+  _globals['_SCORERESPONSE']._serialized_start=1578
+  _globals['_SCORERESPONSE']._serialized_end=1712
+  _globals['_CONTENTREQUEST']._serialized_start=1714
+  _globals['_CONTENTREQUEST']._serialized_end=1790
+  _globals['_CONTENTRESPONSE']._serialized_start=1793
+  _globals['_CONTENTRESPONSE']._serialized_end=1971
+  _globals['_PIPELINEREQUEST']._serialized_start=1974
+  _globals['_PIPELINEREQUEST']._serialized_end=2214
+  _globals['_PIPELINEREQUEST_RUNTIMEKWARGSENTRY']._serialized_start=2122
+  _globals['_PIPELINEREQUEST_RUNTIMEKWARGSENTRY']._serialized_end=2199
+  _globals['_PIPELINERESPONSE']._serialized_start=2217
+  _globals['_PIPELINERESPONSE']._serialized_end=2415
+  _globals['_PIPELINERESPONSE_SCORESENTRY']._serialized_start=1232
+  _globals['_PIPELINERESPONSE_SCORESENTRY']._serialized_end=1277
+  _globals['_ROUTIR']._serialized_start=2418
+  _globals['_ROUTIR']._serialized_end=2801
 # @@protoc_insertion_point(module_scope)
