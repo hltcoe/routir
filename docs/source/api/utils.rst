@@ -18,11 +18,3 @@ Extensions
    :members:
    :undoc-members:
    :show-inheritance:
-
-Lazy Import
------------
-
-.. automodule:: routir.utils.lazy_import
-   :members:
-   :undoc-members:
-   :show-inheritance:

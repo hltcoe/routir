@@ -5,6 +5,10 @@ rerankers, fusion, query expanders) behind a uniform HTTP/gRPC API and lets you 
 them into multi-stage pipelines with a small DSL. This file orients an agent who needs to
 **add a new engine** (a reranker, search engine, query expander, or fusion method).
 
+For task-oriented walkthroughs — calling the client, standing up a local server that
+imports a master server, wrapping a bi-encoder or reranker via `file_imports`, and
+serving multi-view collections — see [`SKILL.md`](SKILL.md).
+
 ## The one concept that matters: `Engine`
 
 Everything pluggable is a subclass of `Engine` (`src/routir/models/abstract.py`). An engine
@@ -225,6 +229,54 @@ format is **JSONL, one line per query**. Each line is a JSON object with these f
 
 This supersedes the older `model`/`index`/`topk` schema produced by a
 local-FAISS script before retrieval moved behind the RoutIR API.
+
+## Warming up sidecar caches
+
+Bytes-view backends (`TarSource`, `LocalPathSource` with glob, `TextJsonlSource`)
+build sidecar indexes on first access — `.taridx` for tar shards, `.offsetmap`
+for plain JSONL. A cold first request can stall while ~~~50–500 K members per
+tar are scanned. Pre-build the sidecars before serving.
+
+**Sidecar resolution chain** (`src/routir/collections/indexing/sidecar.py`):
+
+1. Per-view `cache_dir` on the source spec (set this in the config).
+2. Adjacent to the source file (only works on writable mounts — shared
+   dataset dirs are typically read-only).
+3. `${XDG_CACHE_HOME:-~/.cache}/routir/{taridx,offsetmap}/...` fallback.
+
+Always set `cache_dir` per view when the dataset mount is read-only.
+By convention we point at the in-tree `./.cache/` so it's discoverable.
+
+**Warm one config:**
+
+```bash
+uvx --with-editable . -- python -m routir.collections.indexing.warmup \
+    <config.json> --workers 32
+```
+
+Use `--view <name>` to scope to one view; `--force` to rebuild from scratch.
+
+**Off the login node, via SLURM.** Use `scripts/warmup_slurm.sh`:
+
+```bash
+# One job for the whole config (small datasets only):
+sbatch scripts/warmup_slurm.sh default_baseline_config.json
+
+# One job per view (the merged config includes both multivent-raw (~4669
+# shards/view, keyframe ~16 min) and microvent (28 shards/view, rides
+# along); per-view jobs sweep both collections at once):
+for v in keyframe video ocr_ppocrvl15 ocr_ppocrv5icdar ocr_pagectc \
+         asr_qwen3asr1p7b asr_whisperxlargev3; do
+  sbatch scripts/warmup_slurm.sh default_baseline_config.json "$v"
+done
+```
+
+> **Cluster citizenship — hard rule.** *Never* submit one slurm job (or
+> array task) per shard. With thousands of fine-grained tasks the scheduler
+> falls over for everyone. Always submit one job per **coarse logical unit**
+> (per view, per dataset, per model) and use `--workers N` for internal
+> multiprocess fan-out across the fine-grained units within. The sbatch
+> script takes 32 cpus and exposes them via `$SLURM_CPUS_PER_TASK`.
 
 ## Layout
 

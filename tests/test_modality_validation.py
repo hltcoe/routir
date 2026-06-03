@@ -377,8 +377,6 @@ def test_avail_rest_shape(pr4_server_both):
     assert "vcoll" in body["collection"]
     assert body["collection"]["vcoll"]["default"] == "ocr"
     assert body["collection"]["vcoll"]["views"] == {"ocr": "text", "asr": "text"}
-    # Parallel flat-indexed maps.
-    assert body["collection_view_kinds"] == {"vcoll": {"ocr": "text", "asr": "text"}}
     # Score view kinds for both services.
     assert body["score_view_kinds"]["bytes-rr"] == "bytes"
     # ``trivial`` is search-only, so it shouldn't appear in score_view_kinds.
@@ -402,7 +400,6 @@ async def test_avail_grpc_shape(pr4_server_both):
     assert avail["collection"]["vcoll"]["default"] == "ocr"
     assert avail["collection"]["vcoll"]["views"] == {"ocr": "text", "asr": "text"}
     assert avail["score_view_kinds"]["bytes-rr"] == "bytes"
-    assert avail["collection_view_kinds"] == {"vcoll": {"ocr": "text", "asr": "text"}}
 
 
 def test_rest_score_400_for_bytes_service(pr4_server_both):
@@ -498,7 +495,6 @@ async def test_relay_threads_view_kind_and_views():
             },
         },
         "score_view_kinds": {"s-bytes": "bytes", "s-text": "text"},
-        "collection_view_kinds": {"remote-coll": {"ocr": "text", "kf": "bytes"}},
         "pipeline_aliases": {},
     }
 

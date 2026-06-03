@@ -27,6 +27,7 @@ from routir.collections.indexing import tar_index as _tarmod
 from routir.collections.indexing.offset_file import OffsetFile
 from routir.collections.indexing.sidecar import (
     _hash16,
+    _path_as_folder,
     find_existing_sidecar,
     resolve_sidecar_candidates,
 )
@@ -109,7 +110,8 @@ def test_resolve_candidates_with_cache_dir(tmp_path):
     cands = resolve_sidecar_candidates(source, ".taridx", str(cache_dir))
     assert len(cands) == 3
     h = _hash16(source)
-    assert cands[0] == cache_dir / f"shard.tar.{h}.taridx"
+    folder = _path_as_folder(source)
+    assert cands[0] == cache_dir / folder / f"shard.tar.{h}.taridx"
     assert cands[1] == source.parent / "shard.tar.taridx"
     # XDG_CACHE_HOME is sandboxed by the autouse fixture.
     assert cands[2] == Path(os.environ["XDG_CACHE_HOME"]) / "routir" / "taridx" / f"shard.tar.{h}.taridx"
@@ -148,7 +150,8 @@ def test_taridx_user_cache_dir_wins(tmp_path):
     cache_dir = tmp_path / "sidecars"
     build_or_load_taridx(tar_path, cache_dir=str(cache_dir))
     h = _hash16(tar_path)
-    expected = cache_dir / f"x.tar.{h}.taridx"
+    folder = _path_as_folder(tar_path)
+    expected = cache_dir / folder / f"x.tar.{h}.taridx"
     assert expected.exists()
     # Adjacent must NOT exist.
     assert not (tmp_path / "x.tar.taridx").exists()
@@ -228,7 +231,8 @@ def test_offsetmap_user_cache_dir_wins(tmp_path):
     reader = OffsetFile(p, cache_dir=str(cache_dir), id_field="id")
     assert "a" in reader
     h = _hash16(p)
-    assert (cache_dir / f"corpus.jsonl.{h}.offsetmap").exists()
+    folder = _path_as_folder(p)
+    assert (cache_dir / folder / f"corpus.jsonl.{h}.offsetmap").exists()
     assert not (tmp_path / "corpus.jsonl.offsetmap").exists()
 
 
