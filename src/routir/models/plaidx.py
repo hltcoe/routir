@@ -17,14 +17,18 @@ except ImportError:
 
 _plaidx_checkpoint_singletons: Dict[Union[str, Path], Tuple["Checkpoint", int]] = {}
 
-def _set_xmod_language(checkpoint: "Checkpoint", lang:str):
+
+def _set_xmod_language(checkpoint: "Checkpoint", lang: str):
     """
     Set the default language code for the model. This is used when the language is not specified in the input.
     Source: https://github.com/huggingface/transformers/blob/v4.34.1/src/transformers/models/xmod/modeling_xmod.py#L687
     """
-    assert checkpoint.model.base_model.__class__.__name__ == "XmodModel", f"Only Xmod model can set language, but got {str(checkpoint.model.base_model.__class__)}"
+    assert checkpoint.model.base_model.__class__.__name__ == "XmodModel", (
+        f"Only Xmod model can set language, but got {str(checkpoint.model.base_model.__class__)}"
+    )
     checkpoint.model.set_default_language(lang)
     logger.info(f"Set Xmod language to {lang}")
+
 
 def colbert_all_pair_scores(Q: "torch.Tensor", D: "torch.Tensor", Dm: "torch.Tensor" = None):
     import torch
@@ -73,11 +77,7 @@ def _create_sliding_windows(passages, tokenizer, window_size, stride) -> Tuple[L
             w_ids = special_prefix + window_content + [tokenizer.tok.sep_token_id]
             w_mask = [1] * (2 + (end - start + 1)) + [0] * pad
 
-            all_windows.append((
-                torch.tensor(w_ids, dtype=torch.long),
-                torch.tensor(w_mask, dtype=torch.long),
-                pid
-            ))
+            all_windows.append((torch.tensor(w_ids, dtype=torch.long), torch.tensor(w_mask, dtype=torch.long), pid))
             nw_count += 1
             if end >= length:
                 break
@@ -92,7 +92,6 @@ def _load_mapping(fn, containing_passage_id=True):
         return ["_".join(line.strip().split("\t")[1].split("_")[:-1]) for line in pbar(open(fn))]
     else:
         return [line.strip().split("\t")[1] for line in pbar(open(fn))]
-
 
 
 class PLAIDX(Engine):
@@ -153,9 +152,9 @@ class PLAIDX(Engine):
             self.passage_mapper = None
             if "passage_mapping" not in self.config:
                 if (Path(self.index_path) / "passage_mapping.tsv").exists():
-                    self.config['passage_mapping'] = Path(self.index_path) / "passage_mapping.tsv"
+                    self.config["passage_mapping"] = Path(self.index_path) / "passage_mapping.tsv"
                 elif (Path(self.index_path) / "mapping.tsv").exists():
-                    self.config['passage_mapping'] = Path(self.index_path) / "mapping.tsv"
+                    self.config["passage_mapping"] = Path(self.index_path) / "mapping.tsv"
 
             if "passage_mapping" in self.config:
                 self.passage_mapper = Aggregation(
@@ -216,7 +215,7 @@ class PLAIDX(Engine):
         return {doc_id: score for doc_id, score in scores.items() if self.subset_mapper[doc_id] == only_subset}
 
     async def search_batch(
-        self, queries: List[str], limit: Union[int, List[int]] = 20, subsets: List[str] = None, maxp: bool = True
+        self, queries: List[str], limit: Union[int, List[int]] = 1000, subsets: List[str] = None, maxp: bool = True
     ) -> List[Dict[str, float]]:
         if self.index_path is None:
             raise RuntimeError(f"Engine `{self.name}` does not have an index, can only be used as a reranker.")
@@ -263,25 +262,23 @@ class PLAIDX(Engine):
         batch_size = self.config.get("passage_batch_size", 512)
 
         # Create windows without truncation using encode
-        windows, nwindow_each_pid = _create_sliding_windows(
-            passages, self.checkpoint.doc_tokenizer, window_size, stride
-        )
+        windows, nwindow_each_pid = _create_sliding_windows(passages, self.checkpoint.doc_tokenizer, window_size, stride)
         window_input_ids = torch.stack([w[0] for w in windows])
         Dm = torch.stack([w[1] for w in windows])
-        window_to_pid = [ w[2] for w in windows ]
+        window_to_pid = [w[2] for w in windows]
 
-        expanded_qids = sum([[i]*l for i, l in enumerate(candidate_length)], [])
+        expanded_qids = sum([[i] * l for i, l in enumerate(candidate_length)], [])
         # Map window indices to query indices: window -> passage -> query
         window_to_qid = [expanded_qids[pid] for pid in window_to_pid]
 
-        results = [ [-999 for _ in range(cl)] for cl in candidate_length ]
+        results = [[-999 for _ in range(cl)] for cl in candidate_length]
         with torch.inference_mode():
             Q = self.checkpoint.queryFromText(queries)
 
             for i in range(0, window_input_ids.shape[0], batch_size):
                 end_idx = min(i + batch_size, window_input_ids.shape[0])
-                batch_Q = torch.stack([ Q[window_to_qid[wid]] for wid in range(i, end_idx) ])
-                batch_D, batch_Dm = self.checkpoint.doc(window_input_ids[i:end_idx], Dm[i:end_idx], keep_dims='return_mask')
+                batch_Q = torch.stack([Q[window_to_qid[wid]] for wid in range(i, end_idx)])
+                batch_D, batch_Dm = self.checkpoint.doc(window_input_ids[i:end_idx], Dm[i:end_idx], keep_dims="return_mask")
 
                 for wid, score in zip(range(i, end_idx), colbert_score(batch_Q, batch_D, batch_Dm).cpu().tolist()):
                     qid = window_to_qid[wid]
@@ -290,4 +287,3 @@ class PLAIDX(Engine):
                     results[qid][local_pid] = max(results[qid][local_pid], score)
 
             return results
-

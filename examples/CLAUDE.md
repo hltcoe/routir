@@ -87,6 +87,48 @@ async def score_batch(self, queries, passages, candidate_length=None, **kwargs):
 
 **Critical**: Always expand queries first, score all pairs, then regroup by `candidate_length`.
 
+## Declaring the Content Modality (`accepts_view_kind`)
+
+RoutIR collections expose **named views** of each document — e.g. `ocr`
+(text), `asr` (text), `keyframe` (bytes), `audio` (bytes).  A reranker
+stage in a pipeline picks one with the `@view` DSL suffix
+(`kf-rerank@keyframe%50`), and the corresponding view payload is what
+arrives in `passages`.
+
+Every engine that implements `score_batch` **must** declare what kind of
+payload it expects via the `accepts_view_kind` class attribute on the
+`Engine` subclass:
+
+```python
+class TextReranker(Engine):
+    accepts_view_kind = "text"          # passages: List[str]   (default)
+
+class KeyframeReranker(Engine):
+    accepts_view_kind = "bytes"         # passages: List[List[bytes]]
+                                        # one inner list per doc;
+                                        # length 0 is legal (e.g. audio-only chunks)
+```
+
+The attribute is read by `config.load` and `auto_register` at startup;
+the value is stored on the registry slot.  `SearchPipeline.verify()`
+matches each rerank stage's view kind against the score slot's
+`view_kind` and rejects mismatches before any documents are fetched.
+
+There is no `"both"` value — if an engine consumes both modalities,
+register it under two service names.
+
+**Bytes engines and REST.**  `/score` over REST is text-only and refuses
+bytes engines with HTTP 400.  Reach bytes rerankers via either:
+
+- the pipeline DSL (in-process — the engine receives `List[List[bytes]]`
+  straight from the collection's `ContentProcessor`, no wire encoding), or
+- gRPC `Score` (uses the `BytesParts` `oneof` in `Passage`).
+
+For multi-blob payloads (multiple keyframes per video, multiple audio
+segments per chunk), each inner list contains one or more byte blobs;
+single-blob views are length-1 lists.  The list-of-lists shape is universal
+so multi-blob and single-blob views work without a separate code path.
+
 ## Model Type: Reranker vs Search Engine
 
 ### Reranker (Cross-Encoder)

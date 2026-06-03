@@ -33,12 +33,19 @@ class _ProcessorRegistry:
 
     Attributes:
         all_services: Nested dict of service_name -> service_type -> processor
+        slot_meta: Nested dict of service_name -> service_type -> metadata dict.
+            Mirrors :attr:`all_services` and carries per-slot metadata such as
+            ``view_kind`` (for score/search slots) and ``views`` / ``default_view``
+            (for content slots).  Empty dict if no metadata was supplied at
+            registration time.
     """
 
     def __init__(self):
         """Initialize empty registry."""
         # TODO: make collection name part of the namespace
         self.all_services: Dict[str, Dict[str, Processor]] = {}
+        # Parallel metadata store: same outer/inner keys as ``all_services``.
+        self.slot_meta: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
     @property
     def valid_service_types(self):
@@ -49,7 +56,7 @@ class _ProcessorRegistry:
         """Get all processors for a service name."""
         return self.all_services[name]
 
-    def register(self, name: str, service_type: str, processor: Processor):
+    def register(self, name: str, service_type: str, processor: Processor, **meta: Any):
         """
         Register a processor.
 
@@ -57,9 +64,13 @@ class _ProcessorRegistry:
             name: Service name
             service_type: Service type ('search', 'score', 'content', etc.)
             processor: Processor instance
+            **meta: Optional per-slot metadata.  Recognised keys include
+                ``view_kind`` (str, for score/search slots) and ``views`` /
+                ``default_view`` (for content slots).  The registry is agnostic
+                to specific keys — callers read them back via :meth:`get_meta`.
 
         Raises:
-            AssertionError: If service type is invalid or service already exists
+            ValueError: If service type is invalid or service already exists.
         """
         if service_type not in self.valid_service_types:
             raise ValueError(f"Invalid service type '{service_type}'. Valid types: {self.valid_service_types}")
@@ -68,7 +79,17 @@ class _ProcessorRegistry:
 
         if name not in self.all_services:
             self.all_services[name] = {}
+            self.slot_meta[name] = {}
         self.all_services[name][service_type] = processor
+        self.slot_meta[name][service_type] = dict(meta) if meta else {}
+
+    def get_meta(self, name: str, service_type: str) -> Dict[str, Any]:
+        """Return the metadata dict for a registered slot (empty dict if absent)."""
+        return self.slot_meta.get(name, {}).get(service_type, {})
+
+    def get_slot_meta(self, name: str, service_type: str, key: str, default: Any = None) -> Any:
+        """Convenience accessor: return one metadata value for a slot."""
+        return self.slot_meta.get(name, {}).get(service_type, {}).get(key, default)
 
     def has_service(self, name: str, service_type: str):
         """Check if a service exists."""
@@ -128,7 +149,7 @@ class DummyProcessor(Processor):
 ProcessorRegistry = _ProcessorRegistry()
 
 
-def auto_register(methods: Union[str, List[str]], **default_init_kwargs):
+def auto_register(methods: Union[str, List[str]], view_kind: str = None, **default_init_kwargs):
     """
     Class decorator that instantiates an engine and registers it as a processor.
 
@@ -155,6 +176,12 @@ def auto_register(methods: Union[str, List[str]], **default_init_kwargs):
     Args:
         methods (str or list[str]): Service type(s) to register. Valid values:
             ``"search"``, ``"score"``, ``"fuse"``, ``"decompose_query"``.
+        view_kind (str, optional): Modality of the engine's ``score_batch`` /
+            ``search_batch`` inputs (``"text"`` or ``"bytes"``).  When omitted,
+            falls back to the engine class's ``accepts_view_kind`` attribute
+            (which defaults to ``"text"``).  Only ``score`` / ``search`` slots
+            store this metadata; ``fuse`` and ``decompose_query`` always
+            register as ``"text"``.
         **default_init_kwargs: Keyword arguments forwarded to ``engine_cls()``
             at decoration time.
 
@@ -184,10 +211,21 @@ def auto_register(methods: Union[str, List[str]], **default_init_kwargs):
                     f"Engine {engine_cls.__name__} does not implement '{method}' "
                     f"(can_{method} is False - did you override {method}_batch?)"
                 )
+        resolved_view_kind = view_kind or getattr(engine_cls, "accepts_view_kind", "text")
         # register each
         for method in methods:
+            slot_meta = {}
+            # Only score/search slots care about modality; fuse / decompose_query
+            # always work on text scores or strings.
+            if method in {"score", "search"}:
+                slot_meta["view_kind"] = resolved_view_kind
+            else:
+                slot_meta["view_kind"] = "text"
             ProcessorRegistry.register(
-                engine_cls.__name__, method, processor=DummyProcessor(engine_cls(**default_init_kwargs), method)
+                engine_cls.__name__,
+                method,
+                processor=DummyProcessor(engine_cls(**default_init_kwargs), method),
+                **slot_meta,
             )
 
         return engine_cls

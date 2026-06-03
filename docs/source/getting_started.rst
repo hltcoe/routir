@@ -121,7 +121,7 @@ An example output of the service initiated with the previous example config woul
 .. code-block:: json
 
    {
-       "content": ["neuclir"],
+       "collection": {"neuclir": {"views": {"text": "text"}, "default": "text"}},
        "score": ["Rank1", "RankLlama"],
        "search": ["qwen3-neuclir", "plaidx-neuclir"],
        "fuse": ["RRF", "ScoreFusion"],

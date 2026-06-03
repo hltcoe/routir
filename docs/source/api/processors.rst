@@ -23,7 +23,12 @@ Query Processors
 Content Processors
 ------------------
 
-.. automodule:: routir.processors.content_processors
+.. automodule:: routir.collections.processor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: routir.collections.relay
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,10 +49,10 @@ Cache
    :undoc-members:
    :show-inheritance:
 
-File Random Access Reader
---------------------------
+Random Access Readers
+---------------------
 
-.. automodule:: routir.processors.file_random_access_reader
+.. automodule:: routir.collections.indexing.offset_file
    :members:
    :undoc-members:
    :show-inheritance:

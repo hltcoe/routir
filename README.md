@@ -151,7 +151,7 @@ If your Redis instance is password-protected (which you should), add `password` 
 1. Available services: GET `/avail`. An example output of the service initiated with the previous example config would be: 
 ```json
 {
-    "content": ["neuclir"],
+    "collection": {"neuclir": {"views": {"text": "text"}, "default": "text"}},
     "score": ["Rank1", "RankLlama"],
     "search": ["qwen3-neuclir", "plaidx-neuclir"],
     "fuse": ["RRF", "ScoreFusion"], 
@@ -271,6 +271,63 @@ Output:
 ```
 
 
+
+
+## Multimodal Views
+
+A collection can expose more than one **view** of each document — e.g. an `ocr` text view and a `keyframe` bytes view of the same video chunk. Pipeline stages pick a view at request time with the DSL `@view` suffix. The legacy single-view shape (`doc_path` + `content_field`) still works and synthesises a single `text` view.
+
+```json
+{
+    "collections": [{
+        "name": "multivent",
+        "default_view": "asr",
+        "views": {
+            "asr":      {"kind": "text", "source": {"source": "text_jsonl",
+                          "doc_path": "/data/mv.jsonl", "id_field": "chunk_id", "content_fields": "asr"}},
+            "keyframe": {"kind": "bytes", "source": {
+                          "source": "tar",
+                          "tar_template": "/data/mv/shard_{shard:06d}.tar",
+                          "shard_resolver": {"kind": "manifest", "path": "/data/mv/catalog.csv",
+                                             "id_column": "chunk_id", "shard_column": "shard_index"},
+                          "matcher": {"kind": "glob", "pattern": "{id}.kf_uni5s.t*.jpg"},
+                          "mime": "image/jpeg"}}
+        }
+    }]
+}
+```
+
+Use `service@view` on any pipeline stage; the collection comes from the top-level request. The example below runs BM25 over the default text view, then reranks the top 50 with a keyframe-aware reranker:
+
+```bash
+curl -X POST http://localhost:5000/pipeline \
+-H "Content-Type: application/json" \
+-d '{
+    "pipeline":   "bm25%100 >> kf-rerank@keyframe%50",
+    "query":      "marching band",
+    "collection": "multivent"
+}'
+```
+
+For bytes views, the payload is `List[List[bytes]]` (one inner list per document; multi-blob views — e.g. multiple keyframes per chunk — populate the inner list). REST `/score` is text-only; reach bytes rerankers via the pipeline DSL or gRPC `Score`. Engines declare what they accept via the `accepts_view_kind` class attribute (`"text"` or `"bytes"`); see [`examples/CLAUDE.md`](examples/CLAUDE.md) for the engine-side detail.
+
+### Pre-building tar indexes
+
+Bytes views backed by tar shards use a sidecar `.taridx` (member-name → offset map) built on first open. Pre-build the indexes for a whole tree to avoid the one-time scan at first query:
+
+```bash
+python -m routir.collections.indexing.tar_index /path/to/shards [--force] [--quiet]
+```
+
+### `.tar.gz` policy
+
+Random access on compressed tar requires `indexed_gzip`, which is not yet wired into the runtime read path. Configs that reference `.tar.gz` shards fail at startup by default. To opt in to a decompress-once cache, pass `--allow-tar-gz-decompress-cache <dir>`:
+
+```bash
+routir config.json --allow-tar-gz-decompress-cache /var/cache/routir/tar-decomp
+```
+
+The server decompresses each `.tar.gz` shard once into `<dir>` (basename-preserving — `<src>/foo.tar.gz` → `<dir>/foo.tar`) and rewrites the view's `tar_template` to point at the cached `.tar`. The decompression is idempotent across restarts.
 
 
 ## Python Client

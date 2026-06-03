@@ -64,7 +64,7 @@ class LSR(Engine):
         return {doc_id: score for doc_id, score in scores.items() if self.subset_mapper[doc_id] == only_subset}
 
     async def search_batch(
-        self, queries: List[str], limit: Union[int, List[int]] = 20, subsets: List[str] = None, maxp: bool = True
+        self, queries: List[str], limit: Union[int, List[int]] = 1000, subsets: List[str] = None, maxp: bool = True
     ) -> List[Dict[str, float]]:
         if isinstance(limit, int):
             limit = [int(limit)] * len(queries)
@@ -73,7 +73,7 @@ class LSR(Engine):
             subsets = [None] * len(queries)
 
         # anserini only takes 1 k, send max and remove any extra results.
-        results = self.anserini.query_from_raw_text(queries, model=self.model, k=max(limit) * self.config.get("k_scale", 20))
+        results = self.anserini.query_from_raw_text(queries, model=self.model, k=max(limit) * self.config.get("k_scale", 2))
         return [
             dict(sorted(self.filter_subset(scores, subset).items(), key=lambda x: -x[1])[:l])
             for subset, l, scores in zip(subsets, limit, results)

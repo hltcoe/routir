@@ -27,8 +27,23 @@ class StringList(_message.Message):
     items: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, items: _Optional[_Iterable[str]] = ...) -> None: ...
 
+class ContentViewKinds(_message.Message):
+    __slots__ = ("views", "default")
+    class ViewsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    VIEWS_FIELD_NUMBER: _ClassVar[int]
+    DEFAULT_FIELD_NUMBER: _ClassVar[int]
+    views: _containers.ScalarMap[str, str]
+    default: str
+    def __init__(self, views: _Optional[_Mapping[str, str]] = ..., default: _Optional[str] = ...) -> None: ...
+
 class AvailResponse(_message.Message):
-    __slots__ = ("services", "pipeline_aliases", "grpc_port")
+    __slots__ = ("services", "pipeline_aliases", "grpc_port", "content_views", "score_view_kinds")
     class ServicesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -43,13 +58,31 @@ class AvailResponse(_message.Message):
         key: str
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    class ContentViewsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: ContentViewKinds
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[ContentViewKinds, _Mapping]] = ...) -> None: ...
+    class ScoreViewKindsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     SERVICES_FIELD_NUMBER: _ClassVar[int]
     PIPELINE_ALIASES_FIELD_NUMBER: _ClassVar[int]
     GRPC_PORT_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_VIEWS_FIELD_NUMBER: _ClassVar[int]
+    SCORE_VIEW_KINDS_FIELD_NUMBER: _ClassVar[int]
     services: _containers.MessageMap[str, StringList]
     pipeline_aliases: _containers.ScalarMap[str, str]
     grpc_port: int
-    def __init__(self, services: _Optional[_Mapping[str, StringList]] = ..., pipeline_aliases: _Optional[_Mapping[str, str]] = ..., grpc_port: _Optional[int] = ...) -> None: ...
+    content_views: _containers.MessageMap[str, ContentViewKinds]
+    score_view_kinds: _containers.ScalarMap[str, str]
+    def __init__(self, services: _Optional[_Mapping[str, StringList]] = ..., pipeline_aliases: _Optional[_Mapping[str, str]] = ..., grpc_port: _Optional[int] = ..., content_views: _Optional[_Mapping[str, ContentViewKinds]] = ..., score_view_kinds: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class SearchRequest(_message.Message):
     __slots__ = ("service", "query", "limit", "subset", "instruction", "extras")
@@ -88,6 +121,20 @@ class SearchResponse(_message.Message):
     timestamp: float
     def __init__(self, query: _Optional[str] = ..., scores: _Optional[_Mapping[str, float]] = ..., service: _Optional[str] = ..., cached: bool = ..., timestamp: _Optional[float] = ...) -> None: ...
 
+class Passage(_message.Message):
+    __slots__ = ("text", "bytes")
+    TEXT_FIELD_NUMBER: _ClassVar[int]
+    BYTES_FIELD_NUMBER: _ClassVar[int]
+    text: str
+    bytes: BytesParts
+    def __init__(self, text: _Optional[str] = ..., bytes: _Optional[_Union[BytesParts, _Mapping]] = ...) -> None: ...
+
+class BytesParts(_message.Message):
+    __slots__ = ("parts",)
+    PARTS_FIELD_NUMBER: _ClassVar[int]
+    parts: _containers.RepeatedScalarFieldContainer[bytes]
+    def __init__(self, parts: _Optional[_Iterable[bytes]] = ...) -> None: ...
+
 class ScoreRequest(_message.Message):
     __slots__ = ("service", "query", "passages", "prompt", "extras")
     SERVICE_FIELD_NUMBER: _ClassVar[int]
@@ -97,10 +144,10 @@ class ScoreRequest(_message.Message):
     EXTRAS_FIELD_NUMBER: _ClassVar[int]
     service: str
     query: str
-    passages: _containers.RepeatedScalarFieldContainer[str]
+    passages: _containers.RepeatedCompositeFieldContainer[Passage]
     prompt: str
     extras: _struct_pb2.Struct
-    def __init__(self, service: _Optional[str] = ..., query: _Optional[str] = ..., passages: _Optional[_Iterable[str]] = ..., prompt: _Optional[str] = ..., extras: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+    def __init__(self, service: _Optional[str] = ..., query: _Optional[str] = ..., passages: _Optional[_Iterable[_Union[Passage, _Mapping]]] = ..., prompt: _Optional[str] = ..., extras: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class ScoreMeta(_message.Message):
     __slots__ = ("n_passages",)
@@ -125,26 +172,32 @@ class ScoreResponse(_message.Message):
     def __init__(self, query: _Optional[str] = ..., scores: _Optional[_Iterable[float]] = ..., service: _Optional[str] = ..., cached: bool = ..., timestamp: _Optional[float] = ..., meta: _Optional[_Union[ScoreMeta, _Mapping]] = ...) -> None: ...
 
 class ContentRequest(_message.Message):
-    __slots__ = ("collection", "id")
+    __slots__ = ("collection", "id", "view")
     COLLECTION_FIELD_NUMBER: _ClassVar[int]
     ID_FIELD_NUMBER: _ClassVar[int]
+    VIEW_FIELD_NUMBER: _ClassVar[int]
     collection: str
     id: str
-    def __init__(self, collection: _Optional[str] = ..., id: _Optional[str] = ...) -> None: ...
+    view: str
+    def __init__(self, collection: _Optional[str] = ..., id: _Optional[str] = ..., view: _Optional[str] = ...) -> None: ...
 
 class ContentResponse(_message.Message):
-    __slots__ = ("collection", "id", "text", "cached", "timestamp")
+    __slots__ = ("collection", "id", "cached", "timestamp", "view", "text", "data")
     COLLECTION_FIELD_NUMBER: _ClassVar[int]
     ID_FIELD_NUMBER: _ClassVar[int]
-    TEXT_FIELD_NUMBER: _ClassVar[int]
     CACHED_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    VIEW_FIELD_NUMBER: _ClassVar[int]
+    TEXT_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
     collection: str
     id: str
-    text: str
     cached: bool
     timestamp: float
-    def __init__(self, collection: _Optional[str] = ..., id: _Optional[str] = ..., text: _Optional[str] = ..., cached: bool = ..., timestamp: _Optional[float] = ...) -> None: ...
+    view: str
+    text: str
+    data: BytesParts
+    def __init__(self, collection: _Optional[str] = ..., id: _Optional[str] = ..., cached: bool = ..., timestamp: _Optional[float] = ..., view: _Optional[str] = ..., text: _Optional[str] = ..., data: _Optional[_Union[BytesParts, _Mapping]] = ...) -> None: ...
 
 class PipelineRequest(_message.Message):
     __slots__ = ("pipeline", "query", "collection", "runtime_kwargs")

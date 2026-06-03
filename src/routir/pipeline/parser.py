@@ -47,9 +47,11 @@ PIPELINE_GRAMMAR = r"""
 
     stage: (parallel_seq | system_call)
 
-    system_call: NAME alias? ("%" NUMBER)?  // service[alias]%limit
+    system_call: NAME alias? view? ("%" NUMBER)?  // service[alias]@view%limit
 
     alias: ("[" NAME "]")                   // [my-alias]
+
+    view: ("@" NAME)                        // @view-name
 
     seq_list: seq ("," seq)*                // comma-separated parallel branches
 
@@ -62,8 +64,6 @@ PIPELINE_GRAMMAR = r"""
     %import common.WS
     %ignore WS
 """
-
-# TODO: adding `:collection` into grammar to specify where to get the content
 
 
 # Data classes to represent the AST nodes
@@ -84,12 +84,19 @@ class SystemCall:
               text fetched from the collection.
             * ``"expander"`` — generates sub-queries for parallel execution.
             * ``"merger"`` — fuses multiple ranked lists into one final ranking.
+
+        view (str or None): View name selector (the ``@view`` suffix) used to
+            pick which view of the collection's content service to fetch when
+            this stage reranks.  ``None`` means fall back to the collection's
+            ``default_view`` at run time.  Only meaningful for ``"rerank"``
+            stages; ignored for ``search`` / ``merger`` / ``expander`` roles.
     """
 
     name: str
     alias: Optional[str] = None
     limit: Optional[int] = None
     role: Optional[str] = "search"
+    view: Optional[str] = None
 
     def __post_init__(self):
         if self.alias is None:
@@ -100,10 +107,13 @@ class SystemCall:
         return set([self])
 
     def __hash__(self):
-        return (self.name, self.alias, self.limit).__hash__()
+        return (self.name, self.alias, self.limit, self.view).__hash__()
 
     def as_role(self, role: str):
-        return SystemCall(self.name, self.alias, self.limit, role)
+        return SystemCall(
+            name=self.name, alias=self.alias, limit=self.limit,
+            role=role, view=self.view,
+        )
 
 
 @dataclass
@@ -190,6 +200,14 @@ PipelineComponent = Union[SystemCall, CallSequence, ParallelCallSequences]
 """Type alias for any top-level pipeline AST node."""
 
 
+class _AliasToken(str):
+    """String subclass tagging a parsed alias token to disambiguate transformer args."""
+
+
+class _ViewToken(str):
+    """String subclass tagging a parsed view token to disambiguate transformer args."""
+
+
 class PipelineTransformer(Transformer):
     """Lark ``Transformer`` that converts a parse tree into RoutIR AST nodes.
 
@@ -204,19 +222,25 @@ class PipelineTransformer(Transformer):
         return CallSequence(stages=stages)
 
     def system_call(self, tokens: List[str]):
-        name, alias, limit = tokens[0], None, None
-        if len(tokens) == 3:
-            name, alias, limit = tokens
-        elif len(tokens) == 2:
-            if tokens[1].isdigit():
-                name, limit = tokens
+        name = str(tokens[0])
+        alias = None
+        view = None
+        limit = None
+        for tok in tokens[1:]:
+            if isinstance(tok, _AliasToken):
+                alias = str(tok)
+            elif isinstance(tok, _ViewToken):
+                view = str(tok)
             else:
-                name, alias = tokens
-
-        return SystemCall(name=str(name), alias=alias, limit=int(limit) if limit is not None else None)
+                # NUMBER token from grammar -> limit
+                limit = int(tok)
+        return SystemCall(name=name, alias=alias, view=view, limit=limit)
 
     def alias(self, tokens):
-        return str(tokens[0])
+        return _AliasToken(str(tokens[0]))
+
+    def view(self, tokens):
+        return _ViewToken(str(tokens[0]))
 
     def parallel_seq(self, tokens):
         if len(tokens) == 3:
@@ -242,7 +266,8 @@ def _apply_outer_limit(node: "PipelineComponent", limit: int) -> "PipelineCompon
     :class:`ParallelCallSequences`, the limit replaces the merger's limit.
     """
     if isinstance(node, SystemCall):
-        return SystemCall(name=node.name, alias=node.alias, limit=limit, role=node.role)
+        return SystemCall(name=node.name, alias=node.alias, limit=limit,
+                          role=node.role, view=node.view)
     if isinstance(node, CallSequence):
         new_stages = list(node.stages)
         new_stages[-1] = _apply_outer_limit(new_stages[-1], limit)
@@ -250,12 +275,48 @@ def _apply_outer_limit(node: "PipelineComponent", limit: int) -> "PipelineCompon
         seq.stages = new_stages
         return seq
     if isinstance(node, ParallelCallSequences):
-        new_merger = SystemCall(name=node.merger.name, alias=node.merger.alias, limit=limit, role="merger")
+        new_merger = SystemCall(name=node.merger.name, alias=node.merger.alias,
+                                limit=limit, role="merger", view=node.merger.view)
         pcs = ParallelCallSequences.__new__(ParallelCallSequences)
         pcs.sequences = node.sequences
         pcs.merger = new_merger
         pcs.expander = node.expander
         return pcs
+    raise TypeError(f"Unexpected pipeline AST node type: {type(node).__name__}")
+
+
+def _propagate_view_to_leaves(node: "PipelineComponent", view: str) -> "PipelineComponent":
+    """Set ``view`` on every SystemCall leaf in *node* that doesn't already
+    have one of its own.
+
+    Used by :func:`expand_aliases` to propagate a call-site ``@view`` into
+    the alias body.  Leaves with their own ``@view`` are preserved
+    (authorial intent in the alias body wins over the call-site override).
+
+    Mergers and expanders inside a :class:`ParallelCallSequences` are
+    skipped — they don't fetch document content, so a view annotation is
+    meaningless there.
+    """
+    if isinstance(node, SystemCall):
+        if node.view is not None:
+            return node
+        return SystemCall(name=node.name, alias=node.alias, limit=node.limit,
+                          role=node.role, view=view)
+
+    if isinstance(node, CallSequence):
+        new_stages = [_propagate_view_to_leaves(s, view) for s in node.stages]
+        seq = CallSequence.__new__(CallSequence)
+        seq.stages = new_stages
+        return seq
+
+    if isinstance(node, ParallelCallSequences):
+        new_sequences = [_propagate_view_to_leaves(s, view) for s in node.sequences]
+        pcs = ParallelCallSequences.__new__(ParallelCallSequences)
+        pcs.sequences = new_sequences
+        pcs.merger = node.merger        # merger has no view of its own; skip
+        pcs.expander = node.expander    # ditto
+        return pcs
+
     raise TypeError(f"Unexpected pipeline AST node type: {type(node).__name__}")
 
 
@@ -290,6 +351,8 @@ def expand_aliases(node: "PipelineComponent", aliases: Dict[str, "PipelineCompon
             body = body.as_role(node.role)
             if node.limit is not None:
                 body = _apply_outer_limit(body, node.limit)
+            if node.view is not None:
+                body = _propagate_view_to_leaves(body, node.view)
             return body
         return node
 

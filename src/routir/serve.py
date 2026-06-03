@@ -6,6 +6,7 @@ import signal
 import subprocess
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
+from typing import Optional
 
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
@@ -13,6 +14,7 @@ from quart import Quart, jsonify, request
 
 from .config.load import load_config
 from .pipeline import PipelineAliasRegistry, SearchPipeline
+from .pipeline.cache import get_bytes_content_cache_max_bytes
 from .processors import ProcessorRegistry, ServiceNotFound
 from .utils import logger
 
@@ -63,6 +65,7 @@ if os.environ.get("CORS_ALLOWED", "False") == "True":
 config = None
 api_key: str = None  # universal Bearer token; None disables auth
 grpc_port_advertised: int = None  # set by main() when --grpc is on; surfaced via /avail
+tar_gz_decompress_cache: Optional[str] = None  # set by main() from --allow-tar-gz-decompress-cache
 
 # Paths that bypass Bearer auth even when an API key is configured.
 # `/ping` stays open so liveness probes don't need to carry credentials.
@@ -73,7 +76,7 @@ _AUTH_EXEMPT_PATHS = {"/ping"}
 async def startup():
     """Initialize resources before the server starts."""
     global config
-    await load_config(config)
+    await load_config(config, tar_gz_decompress_cache=tar_gz_decompress_cache)
 
 
 @app.before_request
@@ -184,6 +187,16 @@ async def process_scoring():
             return jsonify({"error": "No data provided"}), 400
 
         service = data.pop("service")
+        # PR4: bytes-modality score services can't be reached over REST (no
+        # binary passage encoding); redirect callers to gRPC or pipeline DSL.
+        view_kind = ProcessorRegistry.get_meta(service, "score").get("view_kind", "text")
+        if view_kind == "bytes":
+            return jsonify({
+                "error": (
+                    f"service '{service}' accepts bytes passages; REST /score is text-only. "
+                    "Use the gRPC Score RPC or invoke this service through /pipeline."
+                )
+            }), 400
         try:
             result = await ProcessorRegistry.submit(service, "score", data)
         except ServiceNotFound as e:
@@ -225,6 +238,21 @@ async def process_get_content():
         data = await request.get_json()
         if not data or "id" not in data:
             return jsonify({"error": "No id provided"}), 400
+
+        # PR4: bytes views can't ride REST.  Reject up front so callers get
+        # a clear redirect to gRPC / pipeline DSL.  Only check when ``view``
+        # is provided explicitly — when omitted, the collection's default
+        # view is used, and that path stays text-only by construction.
+        if "view" in data and "collection" in data:
+            content_meta = ProcessorRegistry.get_meta(data["collection"], "content")
+            kind = (content_meta.get("views") or {}).get(data["view"])
+            if kind == "bytes":
+                return jsonify({
+                    "error": (
+                        f"view '{data['view']}' of collection '{data['collection']}' is bytes; "
+                        "REST /content is text-only. Use the gRPC Content RPC or fetch via /pipeline."
+                    )
+                }), 400
 
         try:
             result = await ProcessorRegistry.submit(data["collection"], "content", data)
@@ -294,6 +322,7 @@ async def process_pipeline():
                 data["query"],
                 collection=data.get("collection"),
                 runtime_kwargs=data.get("runtime_kwargs", {}),
+                bytes_content_cache_max_bytes=get_bytes_content_cache_max_bytes(),
             )
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
@@ -321,18 +350,49 @@ async def get_avail_service():
 
         {
             "search":           ["bm25", "dense"],
-            "score":            ["cross-encoder"],
+            "score":            ["cross-encoder", "kf-rerank"],
             "fuse":             ["rrf"],
             "decompose_query":  [],
-            "content":          ["my-corpus"],
-            "pipeline_aliases": {"ragtime2": "{zho%100, rus%100, ...}ScoreFusion"}
+            "collection": {
+                "my-corpus": {
+                    "views":   {"asr": "text", "ocr": "text", "keyframe": "bytes"},
+                    "default": "asr"
+                }
+            },
+            "score_view_kinds":      {"cross-encoder": "text", "kf-rerank": "bytes"},
+            "collection_view_kinds": {"my-corpus": {"asr": "text", "ocr": "text", "keyframe": "bytes"}},
+            "pipeline_aliases":      {"ragtime2": "{zho%100, rus%100, ...}ScoreFusion"}
         }
 
     Used by :func:`~routir.config.load.auto_add_relay_services` to discover
-    services on remote servers.
+    services on remote servers.  The ``collection`` key carries per-collection
+    view metadata (views map + default view); ``collection_view_kinds``
+    duplicates the inner view-kind data for flat-indexed access.
     """
+    services_dict = ProcessorRegistry.get_all_services()
+
+    # Internally the registry still keys collections under service_type "content";
+    # we surface them as ``collection`` in the public payload to match the
+    # collection/view terminology used everywhere else in the API.
+    collection_info = {}
+    for name in services_dict.pop("content", []):
+        meta = ProcessorRegistry.get_meta(name, "content")
+        collection_info[name] = {
+            "views": dict(meta.get("views") or {}),
+            "default": meta.get("default_view"),
+        }
+
+    score_view_kinds = {
+        name: ProcessorRegistry.get_meta(name, "score").get("view_kind", "text")
+        for name in services_dict.get("score", [])
+    }
+    collection_view_kinds = {name: dict(info["views"]) for name, info in collection_info.items()}
+
     payload = {
-        **ProcessorRegistry.get_all_services(),
+        **services_dict,
+        "collection": collection_info,
+        "score_view_kinds": score_view_kinds,
+        "collection_view_kinds": collection_view_kinds,
         "pipeline_aliases": PipelineAliasRegistry.source,
     }
     if grpc_port_advertised is not None:
@@ -441,6 +501,11 @@ def main():
         --grpc-port: TCP port for the gRPC server (default 50051).
         --grpc-max-message-mb: Cap on inbound and outbound gRPC message size
             in megabytes (default 64).
+        --allow-tar-gz-decompress-cache: Directory into which any ``.tar.gz``
+            tar_template references in the config should be decompressed
+            once at startup.  Without this flag, ``.tar.gz`` references
+            raise at startup (random-access on compressed tar requires
+            ``indexed_gzip``, which is not yet wired into the runtime path).
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str)
@@ -453,14 +518,28 @@ def main():
     parser.add_argument(
         "--grpc-max-message-mb", type=int, default=64, help="Cap on gRPC send/receive message size in MB (default 64)."
     )
+    parser.add_argument(
+        "--allow-tar-gz-decompress-cache",
+        type=str,
+        metavar="DIR",
+        default=None,
+        help=(
+            "If set, .tar.gz tar_templates in the config are decompressed once "
+            "into DIR at startup and their tar_template paths rewritten to the "
+            "decompressed .tar.  Without this flag, .tar.gz refs raise at "
+            "startup (random-access on compressed tar requires indexed_gzip, "
+            "which is not yet wired into the runtime path)."
+        ),
+    )
 
     args = parser.parse_args()
 
     _print_banner()
 
-    global config, api_key, grpc_port_advertised
+    global config, api_key, grpc_port_advertised, tar_gz_decompress_cache
     config = args.config
     api_key = args.api_key
+    tar_gz_decompress_cache = args.allow_tar_gz_decompress_cache
     if args.grpc:
         grpc_port_advertised = args.grpc_port
     if api_key:

@@ -187,6 +187,27 @@ class GrpcTransport(Transport):
         s.update(extras)
         return s
 
+    @staticmethod
+    def _encode_passage(p):
+        """Encode a user-supplied passage to a ``pb.Passage`` message.
+
+        Accepted shapes:
+            ``str``        -> ``Passage(text=...)``
+            ``bytes``      -> ``Passage(bytes=BytesParts(parts=[<bytes>]))``
+            ``list[bytes]`` -> ``Passage(bytes=BytesParts(parts=[...]))``
+        """
+        from ..proto._generated import routir_pb2 as pb
+
+        if isinstance(p, str):
+            return pb.Passage(text=p)
+        if isinstance(p, bytes):
+            return pb.Passage(bytes=pb.BytesParts(parts=[p]))
+        if isinstance(p, list) and all(isinstance(x, bytes) for x in p):
+            return pb.Passage(bytes=pb.BytesParts(parts=p))
+        raise TypeError(
+            f"score passage must be str, bytes, or list[bytes]; got {type(p).__name__}"
+        )
+
     async def ping(self) -> dict:
         from ..proto._generated import routir_pb2 as pb
 
@@ -197,7 +218,21 @@ class GrpcTransport(Transport):
         from ..proto._generated import routir_pb2 as pb
 
         resp = await self._call(self._stub.Avail, pb.AvailRequest())
+        # Callable roles only: search, score, fuse, decompose_query.
         out = {role: list(sl.items) for role, sl in resp.services.items()}
+
+        # Collections live in their own gRPC map.  Decode each entry into the
+        # same {"views": {...}, "default": ...} shape REST returns so callers
+        # (notably ``auto_add_relay_services``) can stay transport-agnostic.
+        collection_info = {}
+        for name, cv in resp.content_views.items():
+            collection_info[name] = {
+                "views": dict(cv.views),
+                "default": cv.default if cv.HasField("default") else None,
+            }
+        out["collection"] = collection_info
+        out["score_view_kinds"] = dict(resp.score_view_kinds)
+        out["collection_view_kinds"] = {name: dict(cv.views) for name, cv in resp.content_views.items()}
         out["pipeline_aliases"] = dict(resp.pipeline_aliases)
         if resp.HasField("grpc_port"):
             out["grpc_port"] = resp.grpc_port
@@ -236,10 +271,11 @@ class GrpcTransport(Transport):
     async def score(self, payload: dict) -> dict:
         from ..proto._generated import routir_pb2 as pb
 
+        passages = [self._encode_passage(p) for p in (payload.get("passages") or [])]
         req = pb.ScoreRequest(
             service=payload.get("service", ""),
             query=payload.get("query", ""),
-            passages=list(payload.get("passages", []) or []),
+            passages=passages,
         )
         if "prompt" in payload and payload["prompt"] is not None:
             req.prompt = payload["prompt"]
@@ -270,14 +306,23 @@ class GrpcTransport(Transport):
             collection=payload.get("collection", ""),
             id=payload.get("id", ""),
         )
+        if payload.get("view"):
+            req.view = payload["view"]
         resp = await self._call(self._stub.Content, req)
-        return {
+        out = {
             "collection": resp.collection,
             "id": resp.id,
-            "text": resp.text,
             "cached": resp.cached,
             "timestamp": resp.timestamp,
         }
+        if resp.HasField("view"):
+            out["view"] = resp.view
+        which = resp.WhichOneof("content")
+        if which == "text":
+            out["text"] = resp.text
+        elif which == "data":
+            out["data"] = list(resp.data.parts)
+        return out
 
     async def pipeline(self, payload: dict) -> dict:
         from ..proto._generated import routir_pb2 as pb

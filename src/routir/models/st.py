@@ -198,7 +198,7 @@ class SentenceTransformerEngine(Engine):
         return {doc_id: score for doc_id, score in scores.items() if self.subset_mapper[doc_id] == only_subset}
 
     async def search_batch(
-        self, queries: List[str], limit: Union[int, List[int]] = 20, subsets: List[str] = None, **kwargs
+        self, queries: List[str], limit: Union[int, List[int]] = 1000, subsets: List[str] = None, **kwargs
     ) -> List[Dict[str, float]]:
         if isinstance(limit, int):
             limit = [int(limit)] * len(queries)
@@ -209,7 +209,7 @@ class SentenceTransformerEngine(Engine):
         _, query_embeddings = self.local_embedding_model.encode(list(enumerate(queries)))
         query_embeddings = query_embeddings.numpy()
 
-        scores, ids = self.index.search(x=query_embeddings, k=int(max(limit) * self.config.get("k_scale", 20)))
+        scores, ids = self.index.search(x=query_embeddings, k=int(max(limit) * self.config.get("k_scale", 2)))
 
         qmap = dict(enumerate(queries))
         run = TRECRun({qid: dict(zip([self.doc_ids[x] for x in ids[qid]], scores[qid])) for qid in qmap})
@@ -225,9 +225,9 @@ class SentenceTransformerEngine(Engine):
         _, query_embeddings = self.local_embedding_model.encode(list(enumerate(queries)))
 
         with torch.no_grad():
-            passage_embeddings = self.local_embedding_model.model_encode(
-                passages, **self.local_embedding_model.encode_kwargs
-            ).cpu().float()
+            passage_embeddings = (
+                self.local_embedding_model.model_encode(passages, **self.local_embedding_model.encode_kwargs).cpu().float()
+            )
 
         return [
             (query_embeddings[i] @ passage_embeddings[bidx:eidx].T).ravel().tolist()

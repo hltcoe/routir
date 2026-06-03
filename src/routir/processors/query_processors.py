@@ -20,7 +20,7 @@ class AsyncQueryProcessor(Processor):
         """
 
         query = item.pop("query")
-        limit = int(item.pop("limit", 10))
+        limit = int(item.pop("limit", 1000))
         # TODO: This is getting increasingly annoying... should just use subset instead of subsets
         subsets = item.pop("subset", None)
 
@@ -43,7 +43,7 @@ class BatchQueryProcessor(BatchProcessor):
         # Simulate processing time (e.g., model inference)
         # await asyncio.sleep(0.5)
         queries = [item.get("query", "") for item in batch]
-        limits = [int(item.get("limit", 10)) for item in batch]
+        limits = [int(item.get("limit", 1000)) for item in batch]
         subsets = [item.get("subset", None) for item in batch]
         rankings = await self.engine.search_batch(queries, limit=limits, subsets=subsets)
 
@@ -74,6 +74,12 @@ class BatchDecomposeQueryProcessor(BatchProcessor):
         sub_queries_list = await self.engine.decompose_query_batch(queries, limit=limits, **extra)
 
         return [
-            {"query": item["query"], "queries": sub_queries, "service": self.engine.name, "processed": True, "timestamp": time.time()}
+            {
+                "query": item["query"],
+                "queries": sub_queries,
+                "service": self.engine.name,
+                "processed": True,
+                "timestamp": time.time(),
+            }
             for item, sub_queries in zip(batch, sub_queries_list)
         ]

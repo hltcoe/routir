@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..processors.registry import ProcessorRegistry
 from ..utils import dict_topk, logger
@@ -75,6 +75,7 @@ class SearchPipeline:
         collection: Optional[str] = None,
         runtime_kwargs: Dict[str, Dict[str, Any]] = None,
         verify: bool = True,
+        bytes_content_cache_max_bytes: Optional[int] = None,
     ):
         """
         Initialize search pipeline.
@@ -97,11 +98,22 @@ class SearchPipeline:
                 the pipeline reranks but no ``collection`` was provided) and
                 ``RuntimeError`` for operational issues (referenced service or
                 content processor not registered).
+            bytes_content_cache_max_bytes (int, optional): Per-pipeline cap on
+                the bytes payloads cached in ``doc_content_cache``.  When set
+                and an insertion would push the accumulated bytes-payload size
+                over the cap, the cache evicts in insertion order (FIFO) until
+                under the cap.  Only bytes-view payloads count toward the cap;
+                text entries are free.  ``None`` (default) disables eviction.
         """
         self.pipeline = pipeline
         self.collection = collection
         self.runtime_kwargs = runtime_kwargs or {}
-        self.doc_content_cache = {}
+        # Per-run document content cache, keyed by (view, doc_id) so different
+        # views of the same document are stored independently.
+        self.doc_content_cache: Dict[Tuple[str, str], Any] = {}
+        # Bytes-payload cap on doc_content_cache; ``None`` => unbounded.
+        self._bytes_cache_max: Optional[int] = bytes_content_cache_max_bytes
+        self._bytes_cache_used: int = 0
 
         if verify:
             self.verify()
@@ -109,13 +121,66 @@ class SearchPipeline:
         if alias_not_found:
             raise RuntimeError(f"Runtime kwargs reference unknown pipeline aliases: {alias_not_found}")
 
+        # ``view`` is structural — it lives in the DSL, not in runtime_kwargs.
+        # Reject any attempt to override it through the runtime layer.
+        for alias, kwargs in (self.runtime_kwargs or {}).items():
+            if "view" in kwargs:
+                raise ValueError(
+                    f"runtime_kwargs for alias '{alias}' contains 'view'; "
+                    "view is structural and must be set in the pipeline DSL"
+                )
+
     def verify(self):
-        """Verify that all required services exist in the registry."""
+        """Verify that all required services exist and views resolve.
+
+        PR4 reads view metadata from the registry slot rather than the
+        content processor directly so the same code path validates both local
+        :class:`~routir.collections.processor.ContentProcessor` and remote
+        :class:`~routir.collections.relay.RelayContentProcessor` collections.
+        Each rerank stage's slot-level ``view_kind`` is also checked against
+        the view's declared kind so a bytes-modality view never gets routed
+        to a text-only scorer (or vice versa).
+        """
         if any(call.role == "rerank" for call in self.pipeline.all_calls):
             if not self.collection:
                 raise ValueError("pipeline contains reranking stage(s) and requires a `collection` field")
             if not ProcessorRegistry.has_service(self.collection, "content"):
-                raise RuntimeError(f"Pipeline requires reranking but no content service found for collection '{self.collection}'")
+                raise RuntimeError(
+                    f"Pipeline requires reranking but no content service found for collection '{self.collection}'"
+                )
+            # Source-of-truth: registry slot metadata.  Works uniformly for
+            # local ContentProcessor and remote RelayContentProcessor since
+            # both register the same ``views`` / ``default_view`` keys.
+            content_meta = ProcessorRegistry.get_meta(self.collection, "content")
+            collection_views = content_meta.get("views")  # Dict[name -> kind] or None
+            default_view = content_meta.get("default_view")
+            # Relays that haven't been hydrated yet may have an empty dict; skip
+            # the view check and let runtime errors surface in that case.
+            if collection_views:
+                for call in self.pipeline.all_calls:
+                    if call.role != "rerank":
+                        continue
+                    resolved = call.view or default_view
+                    if resolved is None:
+                        raise ValueError(
+                            f"stage '{call.alias}' requires a view but none specified "
+                            f"and collection '{self.collection}' has no default_view"
+                        )
+                    if resolved not in collection_views:
+                        raise ValueError(
+                            f"view '{resolved}' (requested by stage '{call.alias}') is not in "
+                            f"collection '{self.collection}'; available views: {sorted(collection_views.keys())}"
+                        )
+                    # PR4 slot-kind check: the resolved view's kind must match
+                    # the score service's declared ``view_kind``.
+                    required_kind = collection_views[resolved]
+                    slot_kind = ProcessorRegistry.get_meta(call.name, "score").get("view_kind", "text")
+                    if required_kind != slot_kind:
+                        raise ValueError(
+                            f"stage '{call.alias}' (view '{resolved}', kind '{required_kind}') "
+                            f"is routed to service '{call.name}' which accepts '{slot_kind}'"
+                        )
+
         for call in self.pipeline.all_calls:
             if not ProcessorRegistry.has_service(call.name, _role_to_service[call.role]):
                 raise RuntimeError(f"No {_role_to_service[call.role]} service registered under '{call.name}'")
@@ -127,6 +192,7 @@ class SearchPipeline:
         collection: Optional[str] = None,
         runtime_kwargs: Dict[str, Dict[str, Any]] = None,
         verify: bool = True,
+        bytes_content_cache_max_bytes: Optional[int] = None,
     ) -> "SearchPipeline":
         """
         Create a pipeline from a DSL string.
@@ -159,14 +225,22 @@ class SearchPipeline:
         """
         ast = parser.parse(pipeline_string)
         ast = expand_aliases(ast, PipelineAliasRegistry.expanded)
-        return cls(ast, collection, runtime_kwargs, verify)
+        return cls(
+            ast,
+            collection,
+            runtime_kwargs,
+            verify,
+            bytes_content_cache_max_bytes=bytes_content_cache_max_bytes,
+        )
 
     def _cache_key(self, query: str) -> str:
         """Build the cache key for this pipeline + query.
 
         The AST is canonicalised via the dataclass ``repr``, which is stable
         across runs for identical inputs and ignores whitespace differences in
-        the original DSL string.  ``runtime_kwargs`` is filtered down to the
+        the original DSL string.  ``SystemCall.view`` is part of the dataclass
+        fields, so ``repr(self.pipeline)`` automatically distinguishes runs
+        that differ only by view.  ``runtime_kwargs`` is filtered down to the
         aliases that actually appear in the pipeline so that an unused key does
         not poison the cache.
         """
@@ -184,6 +258,7 @@ class SearchPipeline:
         query: str,
         collection: Optional[str] = None,
         runtime_kwargs: Dict[str, Dict[str, Any]] = None,
+        bytes_content_cache_max_bytes: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Run a pipeline with optional process-wide result caching.
 
@@ -204,13 +279,22 @@ class SearchPipeline:
             query: User query.
             collection: Collection name for reranking stages.
             runtime_kwargs: Optional per-alias extra parameters.
+            bytes_content_cache_max_bytes: Per-run cap on the bytes payloads
+                cached during pipeline execution; see :meth:`__init__` for
+                details.  Typically sourced from
+                :attr:`~routir.config.Config.bytes_content_cache_max_bytes`.
 
         Returns:
             Final pipeline result dict.  Includes a top-level ``cached`` flag
             indicating whether the *pipeline-level* cache was hit (stage-level
             cache flags are not surfaced when the pipeline cache is in use).
         """
-        pipeline = cls.from_string(pipeline_string, collection, runtime_kwargs=runtime_kwargs)
+        pipeline = cls.from_string(
+            pipeline_string,
+            collection,
+            runtime_kwargs=runtime_kwargs,
+            bytes_content_cache_max_bytes=bytes_content_cache_max_bytes,
+        )
 
         cache = get_pipeline_cache()
         cache_key = None
@@ -228,22 +312,68 @@ class SearchPipeline:
 
         return {**result, "cached": False}
 
-    async def get_doc_content(self, doc_id: str):
-        """
-        Retrieve and cache document content.
+    @staticmethod
+    def _value_bytes_size(value: Any) -> int:
+        """Return the byte-payload size of a doc_content_cache value.
 
-        Args:
-            doc_id: Document identifier
-
-        Returns:
-            Document text content
+        Bytes-view entries are ``List[bytes]``; sum part lengths.  Anything
+        else (e.g. ``str`` text payloads) is treated as size 0 so it doesn't
+        count toward the cap.
         """
-        if doc_id not in self.doc_content_cache:
-            ret = await ProcessorRegistry[self.collection]["content"].submit({"id": doc_id})
+        if not isinstance(value, list):
+            return 0
+        total = 0
+        for part in value:
+            if isinstance(part, (bytes, bytearray)):
+                total += len(part)
+        return total
+
+    def _record_cache_insert(self, key: Tuple[str, str], value: Any) -> None:
+        """Insert into doc_content_cache; FIFO-evict bytes payloads over the cap.
+
+        Text payloads (``str``) skip the size accounting entirely so the cap
+        never evicts them.  When the just-inserted entry is itself larger than
+        the cap, eviction stops at that entry rather than removing it.
+        """
+        if self._bytes_cache_max is None:
+            self.doc_content_cache[key] = value
+            return
+        size = self._value_bytes_size(value)
+        self.doc_content_cache[key] = value
+        if size == 0:
+            return
+        self._bytes_cache_used += size
+        while self._bytes_cache_used > self._bytes_cache_max and self.doc_content_cache:
+            evict_key = next(iter(self.doc_content_cache))
+            if evict_key == key:
+                # Don't evict what we just added; that would defeat the call.
+                break
+            evict_val = self.doc_content_cache.pop(evict_key)
+            self._bytes_cache_used -= self._value_bytes_size(evict_val)
+
+    async def get_doc_content(self, doc_id: str, view: str):
+        """
+        Retrieve and cache document content for a specific view.
+
+        The cache is keyed by ``(view, doc_id)`` so different views of the same
+        document are stored independently.  Bytes payloads are subject to the
+        optional per-pipeline cap configured via
+        ``bytes_content_cache_max_bytes``.
+        """
+        key = (view, doc_id)
+        if key not in self.doc_content_cache:
+            ret = await ProcessorRegistry[self.collection]["content"].submit(
+                {"id": doc_id, "view": view}
+            )
             if "error" in ret:
-                raise RuntimeError(f"Failed to retrieve content for document '{doc_id}': {ret['error']}")
-            self.doc_content_cache[doc_id] = ret["text"]
-        return self.doc_content_cache[doc_id]
+                raise RuntimeError(
+                    f"Failed to retrieve content for document '{doc_id}' view '{view}': {ret['error']}"
+                )
+            # Text views populate 'text'; bytes views (PR5+) populate 'data' (List[bytes]).
+            # Store whichever is set so rerank stages get the right payload shape.
+            value = ret.get("text") if "text" in ret else ret.get("data")
+            self._record_cache_insert(key, value)
+        return self.doc_content_cache[key]
 
     async def run(
         self,
@@ -279,9 +409,11 @@ class SearchPipeline:
                 Defaults to the root of the pipeline.  Set automatically during
                 recursion; callers should leave this as ``None``.
             scratch (dict, optional): Internal cache of intermediate stage
-                results, keyed by ``(alias, role)`` tuples.  Populated during
-                execution so the same stage is not re-run if referenced multiple
-                times.  Callers should leave this as ``None``.
+                results, keyed by ``(alias, role, view)`` tuples.  Populated
+                during execution so the same stage is not re-run if referenced
+                multiple times; including ``view`` keeps the same alias+role
+                under two different views from collapsing.  Callers should
+                leave this as ``None``.
 
         Returns:
             dict: Result from the final pipeline stage. Typically contains:
@@ -343,9 +475,24 @@ class SearchPipeline:
 
         if current_node.role == "rerank":
             docid_to_rerank: List[str] = list(last_output["scores"].keys())
-            logger.info(f"Gathering doc content for {len(docid_to_rerank)} documents")
-            doc_text_list = await asyncio.gather(*[self.get_doc_content(d) for d in sorted(docid_to_rerank)])
-            payload["passages"] = doc_text_list
+
+            # Resolve view: per-stage @view wins; otherwise use the collection's default.
+            view = current_node.view
+            if view is None:
+                cp = ProcessorRegistry[self.collection]["content"]
+                view = getattr(cp, "default_view", None)
+            # verify() should have caught a missing default_view already; defensive guard:
+            if view is None:
+                raise RuntimeError(
+                    f"rerank stage '{current_node.alias}' has no view and collection "
+                    f"'{self.collection}' has no default_view"
+                )
+
+            logger.info(f"Gathering doc content for {len(docid_to_rerank)} documents (view='{view}')")
+            # Text views return List[str]; bytes views (PR5+) return List[List[bytes]].
+            # Either shape is handed straight to the engine via ``payload['passages']``.
+            passages = await asyncio.gather(*[self.get_doc_content(d, view) for d in sorted(docid_to_rerank)])
+            payload["passages"] = passages
             ret = await processor.submit(payload)
             if "scores" not in ret or not isinstance(ret["scores"], list):
                 raise RuntimeError(
@@ -369,5 +516,8 @@ class SearchPipeline:
             elif "queries" in ret:
                 ret["queries"] = ret["queries"][: current_node.limit]
 
-        scratch[(current_node.alias, current_node.role)] = ret
+        # Include view in the scratch key so the same alias+role under two
+        # different views (e.g. ``kf-rerank@kf >> kf-rerank@ocr``) does not
+        # collapse into a single entry.
+        scratch[(current_node.alias, current_node.role, current_node.view)] = ret
         return ret

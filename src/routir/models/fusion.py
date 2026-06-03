@@ -88,7 +88,7 @@ class Fusion(Engine):
         self.fusion_function = _fusion_functions[self.config.get("fusion_method", "RRF")]
         self.fusion_args = self.config.get("fusion_args", {})
 
-    async def search_batch(self, queries, limit=20, **kwargs) -> List[Dict[str, float]]:
+    async def search_batch(self, queries, limit=1000, **kwargs) -> List[Dict[str, float]]:
         if not isinstance(limit, list):
             limit = [limit] * len(queries)
         assert len(limit) == len(queries)
