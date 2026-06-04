@@ -9,8 +9,8 @@ Resolution priority for both load and write (first viable wins):
   1. User-specified ``cache_dir`` (per-view ``cache_dir`` field on the
      source spec).  Layout is ``<cache_dir>/<parent_as_folder>/<basename>.<hash16>.<suffix>``
      where ``parent_as_folder`` is the source's parent directory with the
-     path separator replaced by ``_`` (e.g. ``/data/datasets/foo``
-     becomes ``_data_datasets_foo``), and the hash is the first 16
+     path separator replaced by ``_`` (e.g. ``/exp/scale26/datasets/foo``
+     becomes ``_exp_scale26_datasets_foo``), and the hash is the first 16
      hex chars of ``sha256(realpath(source))``.  The folder level keeps
      listings of large mixed cache dirs readable; the hash keeps shard
      basenames disambiguated within the folder (and across symlinks to
@@ -47,7 +47,7 @@ def _path_as_folder(source: Path) -> str:
     its own subfolder, and shard sidecars sit one level below that.
 
     Absolute paths keep the leading separator as a leading underscore
-    (e.g. ``/data/foo`` -> ``_data_foo``), which is intentional — it
+    (e.g. ``/exp/foo`` -> ``_exp_foo``), which is intentional — it
     preserves the absolute / relative distinction in the folder name.
     """
     return str(source.parent).replace(os.sep, "_")

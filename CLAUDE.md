@@ -206,13 +206,13 @@ format is **JSONL, one line per query**. Each line is a JSON object with these f
 ```json
 {
   "endpoint": "http://compute01:5000",
-  "pipeline": "{dense-search%1000, reranker%1000}RRF%100",
-  "collection": "my-corpus",
+  "pipeline": "{qwen3asr-emb8b%1000, qwen3-vl-8b%1000}RRF%100",
+  "collection": "microvent",
   "query_id": "1",
   "query": "full query text",
   "results": [
-    {"rank": 1, "doc_id": "doc-aaa-0001", "score": 0.497211},
-    {"rank": 2, "doc_id": "doc-bbb-0000", "score": 0.484272}
+    {"rank": 1, "doc_id": "LUoCjPhSGLhy4ftu_0001", "score": 0.497211},
+    {"rank": 2, "doc_id": "VLVKwM0-X_AmiZjA_0000", "score": 0.484272}
   ]
 }
 ```
@@ -256,17 +256,27 @@ uvx --with-editable . -- python -m routir.collections.indexing.warmup \
 
 Use `--view <name>` to scope to one view; `--force` to rebuild from scratch.
 
-**Off the login node, via SLURM.** Wrap the warmup invocation in a sbatch
-script that allocates a multi-cpu node and passes `$SLURM_CPUS_PER_TASK`
-to `--workers`. Submit one job for a whole config when the dataset is
-small; for larger multi-view collections, submit one job per view
-(`--view <name>`) so each job sweeps its view in parallel.
+**Off the login node, via SLURM.** Use `scripts/warmup_slurm.sh`:
+
+```bash
+# One job for the whole config (small datasets only):
+sbatch scripts/warmup_slurm.sh default_baseline_config.json
+
+# One job per view (the merged config includes both multivent-raw (~4669
+# shards/view, keyframe ~16 min) and microvent (28 shards/view, rides
+# along); per-view jobs sweep both collections at once):
+for v in keyframe video ocr_ppocrvl15 ocr_ppocrv5icdar ocr_pagectc \
+         asr_qwen3asr1p7b asr_whisperxlargev3; do
+  sbatch scripts/warmup_slurm.sh default_baseline_config.json "$v"
+done
+```
 
 > **Cluster citizenship — hard rule.** *Never* submit one slurm job (or
 > array task) per shard. With thousands of fine-grained tasks the scheduler
 > falls over for everyone. Always submit one job per **coarse logical unit**
 > (per view, per dataset, per model) and use `--workers N` for internal
-> multiprocess fan-out across the fine-grained units within.
+> multiprocess fan-out across the fine-grained units within. The sbatch
+> script takes 32 cpus and exposes them via `$SLURM_CPUS_PER_TASK`.
 
 ## Layout
 
