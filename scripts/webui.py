@@ -581,9 +581,9 @@ async def index_page():
         avail_err = str(e)
 
     if collection is None:
-        # Default (mirrors the engine dropdown defaulting to the first search
-        # engine): --collection if set, else the first collection /avail lists.
-        collection = ARGS.collection or next(iter(avail.get("collection") or {}), "")
+        # Default (mirrors the engine dropdown below): --collection if set, else
+        # the alphabetically first collection /avail lists.
+        collection = ARGS.collection or min(avail.get("collection") or {}, default="")
 
     search_engines = list(avail.get("search", []))
     # Engine selection drives the pipeline: a named first-stage engine runs as a
@@ -591,7 +591,9 @@ async def index_page():
     # size applies; the sentinel __custom__ uses whatever is typed in the box.
     engine = request.args.get("engine")
     if engine is None:
-        engine = search_engines[0] if search_engines else "__custom__"
+        # Default: --engine if set, else the alphabetically first search engine
+        # /avail lists (mirroring the collection default above).
+        engine = ARGS.engine or (min(search_engines) if search_engines else "__custom__")
 
     if engine == "__custom__":
         effective_pipeline = custom_pipeline
@@ -1573,7 +1575,17 @@ def main():
         "RoutIR's own default result size applies. Note: braces are only for parallel fusion "
         "and require a merger, e.g. '{a%%1000, b%%1000}RRF%%100'.",
     )
-    parser.add_argument("--collection", default=None, help="Default collection to preselect.")
+    parser.add_argument(
+        "--engine",
+        default=None,
+        help="Default engine to preselect in the Engine dropdown (default: the alphabetically "
+        "first search engine the endpoint lists in /avail).",
+    )
+    parser.add_argument(
+        "--collection",
+        default=None,
+        help="Default collection to preselect (default: the alphabetically first collection the endpoint lists in /avail).",
+    )
     # Default to the repo's default_descriptions.json when it's present (it sits at
     # the repo root, one level up from scripts/); fall back to no descriptions if
     # the script is run from outside a checkout.
